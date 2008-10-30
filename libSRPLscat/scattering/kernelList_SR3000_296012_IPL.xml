@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PersPass>
+    <ScatComp>
+        <kernel numCoeffsH="013" sigmaH="002.0f" numCoeffsV="013" sigmaV="002.0f" weight="0.0000f"/> <!-- kernel, short distance -->
+        <kernel numCoeffsH="097" sigmaH="016.0f" numCoeffsV="161" sigmaV="032.0f" weight="0.0000f"/> <!-- kernel, long distance -->
+        <kernel numCoeffsH="161" sigmaH="032.0f" numCoeffsV="161" sigmaV="064.0f" weight="0.1000f"/> <!-- kernel, longer distance -->
+        <kernel numCoeffsH="161" sigmaH="048.0f" numCoeffsV="161" sigmaV="048.0f" weight="0.0700f"/> <!-- kernel, longer distance -->
+        <kernel numCoeffsH="161" sigmaH="064.0f" numCoeffsV="161" sigmaV="064.0f" weight="0.1800f"/> <!-- kernel, longer distance -->
+    </ScatComp>
+</PersPass>
