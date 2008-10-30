@@ -8,6 +8,7 @@
 
 #include "imgPadder.h"
 #include "CamScattering.h" //!< camera settings panel header file
+#include "CamScatteringInt.h" //!< camera settings panel header file
 
 /**
  * Camera frame class constructor \n
@@ -1943,4 +1944,41 @@ int CamScattering::Compensate(SRBUF scatBuf, NANBUF nanBuf)
 	int res = 0;
 	res += CalcScatCorrPadDft(scatBuf, nanBuf);
 	return res;
+}
+
+SRPLSCAT_API int PLSC_Open(SRPLSCAT* srplScat, SRBUF srBuf)
+{
+  //if(!srBuf)return -1;
+  *srplScat= new CamScattering(srBuf);
+  return 0;
+}
+SRPLSCAT_API int PLSC_Close(SRPLSCAT srplScat)
+{
+  if(!srplScat)return -1;
+  delete(srplScat);
+  return 0;
+}
+SRPLSCAT_API int PLSC_Compensate(SRPLSCAT srplScat, SRBUF srBuf, NANBUF nanBuf)
+{
+  if(!srplScat)return -1;
+  int res = srplScat->Compensate(srBuf, nanBuf);
+  return res;
+}
+SRPLSCAT_API int PLSC_SetCompensationTarget(SRPLSCAT srplScat, SRBUF srBuf, NANBUF nanBuf)
+{
+  if(!srplScat)return -1;
+  int res = srplScat->SetCompensationTarget(srBuf, nanBuf);
+  return res;
+}
+//SRPLSCAT_API int PLSC_CompensateAgain(SRPLSCAT srplScat)
+//{
+//  if(!srplScat)return -1;
+//  int res = srplScat->CompensateAgain();
+//  return res;
+//}
+SRPLSCAT_API int PLSC_LoadScatSettings(SRPLSCAT srplScat, const char* fn)
+{
+  if(!srplScat)return -1;
+  int res = srplScat->LoadScatSettings(fn);
+  return res;
 }

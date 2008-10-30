@@ -7,6 +7,10 @@
  */
 
 #pragma once
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "srBuf.h"
 
 #ifndef NANBUFHEADER
@@ -19,32 +23,20 @@ typedef struct nanVar {
 } NANBUF;
 #endif
 
-
-/**
- * NaN flag class \n
- * This class: \n
- * - flags Not a Number (NaN) values  \n
- */
-class CamFlagNaN //!< NaN flag class
-{
-public:
-	//! constructor
-    CamFlagNaN( SRBUF srBuf);
-	//! destructor
-	~CamFlagNaN();
-	//! FlagNaN method
-	bool* FlagNaN(SRBUF nanBuf);
-	bool* GetNaNs();		//!< Returns the PSF image (double)
-	
-
-private:
-	SRBUF savBuf;
-	NANBUF _imgNaN;
-	
-#ifdef FLAGNTIMER
-  CPreciseTimer _flagNTimer;	//!< timer for FlagNaN
-  float			_timeFlagN_s;	//!< variable to hold FlagNaN time in seconds
+// #define _SRPL_API_DLL  // in project properties
+#ifdef _SRPL_API_DLL      //using file libSRparlab.h, libSRparlab.cpp to generate libSRparlab.dll
+#define SRPLSCAT_API __declspec(dllexport)
+#else              //using file libSRparlab.h with libSRparlab.dll
+#define SRPLSCAT_API __declspec(dllimport)
 #endif
 
-};
+class CamFlagNaN;
+typedef CamFlagNaN* SRPLNAN;
+SRPLSCAT_API int PLNN_Open(SRPLNAN* srplNaN, SRBUF srBuf );
+SRPLSCAT_API int PLNN_Close(SRPLNAN srplNaN);
+SRPLSCAT_API bool* PLNN_FlagNaN(SRPLNAN srplNaN, SRBUF srBuf);
+SRPLSCAT_API int PLNN_GetNaNs(SRPLNAN srplNaN, SRBUF srBuf); // NOT YET IMPLEMENTED
 
+#ifdef __cplusplus
+}
+#endif

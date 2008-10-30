@@ -8,6 +8,7 @@
 
 #include "imgPadder.h"
 #include "CamFlagNaN.h" //!< camera settings panel header file
+#include "CamFlagNaNInt.h" //!< camera settings panel header file
 
 
 /**
@@ -81,3 +82,26 @@ bool* CamFlagNaN::FlagNaN(SRBUF nanBuf)
 #endif
 	return _imgNaN.nanBool;
 }
+
+SRPLSCAT_API int PLNN_Open(SRPLNAN* srplNaN, SRBUF srBuf )
+{
+  //if(!srBuf)return -1;
+  *srplNaN= new CamFlagNaN(srBuf);
+  return 0;
+}
+SRPLSCAT_API int PLNN_Close(SRPLNAN srplNaN)
+{
+  if(!srplNaN)return -1;
+  delete(srplNaN);
+  return 0;
+}
+SRPLSCAT_API bool* PLNN_FlagNaN(SRPLNAN srplNaN, SRBUF srBuf)
+{
+  if(!srplNaN)return NULL;
+  return srplNaN->FlagNaN(srBuf);
+}
+//SRPLSCAT_API int PLNN_GetNaNs(SRPLNAN srplNaN, SRBUF srBuf); // NOT YET IMPLEMENTED
+//{
+//  if(!srplNaN)return NULL;
+//  return srplNaN->GetNaNs(srBuf);
+//}
