@@ -9,10 +9,12 @@ package.targetprefix = ""
 --package.config["DebugVTK"].target = string.format('/%s%s%s',os.getenv("JMU_BUILDS"), "/Debug/bin",package.name)
 --package.config["ReleaseVTK"].target = string.format('%s%s%s',os.getenv("JMU_BUILDS"), "/Release/bin",package.name)
 
-package.config["Debug"].bindir = string.format('%s%s',os.getenv("JMU_BUILDS"), "/Debug/bin")
-package.config["Release"].bindir = string.format('%s%s',os.getenv("JMU_BUILDS"), "/Release/bin")
-package.config["Debug"].objdir = string.format('%s%s',os.getenv("JMU_BUILDS"), "/Debug/obj")
-package.config["Release"].objdir = string.format('%s%s',os.getenv("JMU_BUILDS"), "/Release/obj")
+package.config["Debug"].bindir = string.format('%s%s',os.getenv("JMU_BUILDS"), "/Debug/lib")
+package.config["Release"].bindir = string.format('%s%s',os.getenv("JMU_BUILDS"), "/Release/lib")
+package.config["Debug"].objdir = string.format('%s%s%s',os.getenv("JMU_BUILDS"), "/Debug/obj/", package.name)
+package.config["Release"].objdir = string.format('%s%s%s',os.getenv("JMU_BUILDS"), "/Release/obj/", package.name)
+package.config["Debug"].libdir = string.format('%s%s',os.getenv("JMU_BUILDS"), "/Debug/lib")
+package.config["Release"].libdir = string.format('%s%s',os.getenv("JMU_BUILDS"), "/Release/lib")
 
 package.files = {
   matchfiles("*.h", "*.cpp")
@@ -20,7 +22,7 @@ package.files = {
 
 package.buildflags = {"no-pch","no-main"}
 --package.defines = {""}
-
+tinsert(package.defines, { "_SRPL_API_DLL" } )
 
 tinsert(package.config["Release"].buildflags, {"optimize-speed"})
 
