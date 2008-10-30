@@ -7,6 +7,15 @@
  */
 
 #pragma once
+// #define _SRPL_API_DLL  // in project properties
+#ifdef _SRPL_API_DLL      //using file libSRparlab.h, libSRparlab.cpp to generate libSRparlab.dll
+#define SRPLSCAT_API __declspec(dllexport)
+#else              //using file libSRparlab.h with libSRparlab.dll
+#define SRPLSCAT_API __declspec(dllimport)
+#endif
+
+#define _CRT_SECURE_NO_DEPRECATE // used to remove MS C4996 warning for fopen
+								 // fopen is used only in raw binary PSF read
 #ifndef SAFE_FREE
 	#define SAFE_FREE(p)       { if(p) { delete (p);     (p)=0; } }
 #endif
@@ -28,7 +37,6 @@
 #pragma comment(lib, "libfftw3-3")
 #include "srBuf.h"
 
-class CamFrame;
 
 //! class for kernels used in scattering compensation
 class SCkernel
@@ -60,16 +68,16 @@ class CamScattering //!< Camera frame class
 {
 public:
 	//! constructor
-    CamScattering( SRBUF srBuf);
+    SRPLSCAT_API CamScattering( SRBUF srBuf);
 	//! destructor
-	~CamScattering();
+	SRPLSCAT_API ~CamScattering();
 	//! Compensate scattering method
-	int Compensate(SRBUF scatBuf, NANBUF nanBuf);
+	SRPLSCAT_API int Compensate(SRBUF scatBuf, NANBUF nanBuf);
 	//! Add abiltity to set target once and for all
-	int SetCompensationTarget(SRBUF scatBuf, NANBUF nanBuf);
+	SRPLSCAT_API int SetCompensationTarget(SRBUF scatBuf, NANBUF nanBuf);
 	//! Compensate on previously defined target
-	int CompensateAgain();
-	double*   GetPsfD();		//!< Returns the PSF image (double)
+	SRPLSCAT_API int CompensateAgain();
+	SRPLSCAT_API double*   GetPsfD();		//!< Returns the PSF image (double)
 	
 
 private:

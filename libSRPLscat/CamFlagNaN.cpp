@@ -1,9 +1,9 @@
 /*
  * CamFlagNaN.cpp
- * Implementation of the NaN flagging methods for wxSRparlab
+ * Implementation of the NaN flagging methods
  *
  * @author: James Mure-Dubois
- * @version: 2008.10.23
+ * @version: 2008.10.30
  */
 
 #include "imgPadder.h"

@@ -1,9 +1,9 @@
 /*
  * CamFlagNaN.h
- * Header of the NaN flagging methods for wxSRparlab
+ * Header of the NaN flagging methods
  *
  * @author: James Mure-Dubois
- * @version: 2008.10.23
+ * @version: 2008.10.30
  */
 
 #pragma once
@@ -19,14 +19,13 @@ typedef struct nanVar {
 } NANBUF;
 #endif
 
-class CamFrame;
 
 /**
- * Camera frame class \n
+ * NaN flag class \n
  * This class: \n
- * - computes scattering compensation (s) \n
+ * - flags Not a Number (NaN) values  \n
  */
-class CamFlagNaN //!< Camera frame class
+class CamFlagNaN //!< NaN flag class
 {
 public:
 	//! constructor
@@ -39,8 +38,6 @@ public:
 	
 
 private:
-	CamFrame	*_camFrm; // parent main wnd
-	//bool*	_imgNaN; // NaN image
 	SRBUF savBuf;
 	NANBUF _imgNaN;
 	

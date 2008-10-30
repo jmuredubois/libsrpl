@@ -1,9 +1,9 @@
 /*
  * CamScattering.cpp
- * Implementation of the scattering compensation methods for wxSRparlab
+ * Implementation of the scattering compensation methods
  *
  * @author: James Mure-Dubois
- * @version: 2008.08.26
+ * @version: 2008.10.30
  */
 
 #include "imgPadder.h"
