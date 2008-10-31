@@ -38,7 +38,16 @@ end
 
 ---END OF package includes for wxWidgets
 
-
+if (OS == "macosx") then
+  if (target =="cb-gcc") then
+	tinsert( package.libpaths, 
+      {
+      	string.format('%s', "/usr/local/lib")
+        --string.format('%s%s',os.getenv("WXWIN"), "/build-release")
+      }
+	)
+  end
+end
 
 --package includes for TICPP
 tinsert(package.config["Debug"].links,   { "ticppd"})
