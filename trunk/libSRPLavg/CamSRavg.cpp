@@ -24,7 +24,7 @@ CamSRavg::CamSRavg(SRBUF srBuf)
 	_avgImgPha = NULL; _avgImgAmp = NULL;						
 	_avgVarPha = NULL; _avgVarAmp = NULL;							
 	_avgSquPha = NULL; _avgSquAmp = NULL;						
-	_avgPhiPha = NULL; _avgSquAmp = NULL;
+	_avgPhiPha = NULL; _avgPhiAmp = NULL;
 	AvgBufAlloc();
 }
 
@@ -103,7 +103,7 @@ void CamSRavg::AvgBufFree()
 int CamSRavg::LearnBackgroundInitReset(SRBUF srBuf)
 {
 	int res = 0;
-    if( (srBuf.nCols<1) || (srBuf.nRows<1) || (srBuf.nCols*srBuf.nRows*sizeof(unsigned short) != srBuf.bufferSizeInBytes) ){return -1;};
+    if( (srBuf.nCols<1) || (srBuf.nRows<1) || (srBuf.nCols*srBuf.nRows*2*sizeof(unsigned short) != srBuf.bufferSizeInBytes) ){return -1;};
 
 	if( (srBuf.nCols != _avgBuf.nCols) || (srBuf.nRows != _avgBuf.nRows) )
 	{
@@ -135,7 +135,7 @@ int CamSRavg::LearnBackground(SRBUF srBuf)
 	int res = 0;
 	int i = 0;
 	double pi = 3.1415926535;
-    if( (srBuf.nCols<1) || (srBuf.nRows<1) || (srBuf.nCols*srBuf.nRows*sizeof(unsigned short) != srBuf.bufferSizeInBytes) ){return -1;};
+    if( (srBuf.nCols<1) || (srBuf.nRows<1) || (srBuf.nCols*srBuf.nRows*2*sizeof(unsigned short) != srBuf.bufferSizeInBytes) ){return -1;};
 
 	if( (srBuf.nCols != _avgBuf.nCols) || (srBuf.nRows != _avgBuf.nRows) )
 	{
