@@ -46,7 +46,8 @@ public:
 	int LearnBackground(SRBUF srBuf);
 	//! End Learn background method
 	//int LearnBackgroundEnd();
-	SRBUF   GetAvgBuf();		//!< Returns the currebnt average buffer
+	SRBUF   GetAvgBuf();	//!< Returns the current average buffer
+	int   GetAvgCnt(){return _avgCnt;};		//!< Returns the current average count
 	int	   SetAvgAlpha(double alpha); //!< Sets Alpha for IIR learning (alpha = 0.0 disables IIR)
 	double GetAvgAlpha(); //!< retrieves alaph for IIR learning (alpha==0.0 means IIR is disabled)
 
