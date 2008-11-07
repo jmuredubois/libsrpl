@@ -34,7 +34,7 @@ public:
 	~CamFlagNaN();
 	//! FlagNaN method
 	bool* FlagNaN(SRBUF nanBuf);
-	bool* GetNaNs();		//!< Returns the PSF image (double)
+	//bool* GetNaNs();		//!< Returns the NaN buffer (bool)
 	
 
 private:

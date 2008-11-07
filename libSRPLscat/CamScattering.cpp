@@ -7,8 +7,8 @@
  */
 
 #include "imgPadder.h"
+#include "libSRPLscat.h" //!< camera settings panel header file
 #include "CamScattering.h" //!< camera settings panel header file
-#include "CamScatteringInt.h" //!< camera settings panel header file
 
 /**
  * Camera frame class constructor \n
