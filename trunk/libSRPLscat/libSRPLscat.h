@@ -1,5 +1,5 @@
 /*
- * CamScattering.h
+ * libSRPLscat.h
  * Header of the scattering compensation method
  *
  * @author: James Mure-Dubois
@@ -15,9 +15,9 @@ extern "C" {
 #include "srBuf.h"
 
 // #define _SRPL_API_DLL  // in project properties
-#ifdef _SRPL_API_DLL      //using file libSRparlab.h, libSRparlab.cpp to generate libSRparlab.dll
+#ifdef _SRPL_API_DLL      //using file CamScattering.h, CamScattering.cpp to generate libSRPLscat.dll
 #define SRPLSCAT_API __declspec(dllexport)
-#else              //using file libSRparlab.h with libSRparlab.dll
+#else              //using file libSRPLscat.h with libSRPLscat.dll
 #define SRPLSCAT_API __declspec(dllimport)
 #endif
 

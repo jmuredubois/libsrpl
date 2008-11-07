@@ -7,8 +7,8 @@
  */
 
 #include "imgPadder.h"
+#include "libSRPLflagNaN.h" //!< camera settings panel header file
 #include "CamFlagNaN.h" //!< camera settings panel header file
-#include "CamFlagNaNInt.h" //!< camera settings panel header file
 
 
 /**
