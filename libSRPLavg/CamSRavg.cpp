@@ -333,6 +333,12 @@ SRPLAVG_API SRBUF PLAVG_GetAvgBuf(SRPLAVG srplAvg)
   return srplAvg->GetAvgBuf();
 }
 
+SRPLAVG_API int PLAVG_GetAvgCnt(SRPLAVG srplAvg)
+{
+  if(!srplAvg)return -1;
+  return srplAvg->GetAvgCnt();
+}
+
 SRPLAVG_API int PLAVG_SetAvgAlpha(SRPLAVG srplAvg, double alpha)
 {
   if(!srplAvg)return -1;
