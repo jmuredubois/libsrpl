@@ -7,19 +7,29 @@
  */
 
 #pragma once
+// #define _SRPL_API_DLL  // in project properties
+#ifdef _MSC_VER
+	#ifdef _SRPL_API_DLL      //using file camSRavg.h, camSRavg.cpp to generate libSRPLavg.dll
+		#define SRPLCTR_API __declspec(dllexport)
+	#else              //using file libSRPLavg.h with libSRPLavg.dll
+		#define SRPLCTR_API __declspec(dllimport)
+	#endif
+	#define SRPLCTR_LOC
+#else
+  #ifdef HAVE_GCCVISIBILITYPATCH
+    #define SRPLCTR_API __attribute__ ((visibility("default")))
+    #define SRPLCTR_LOC __attribute__ ((visibility("hidden")))
+  #else
+    #define SRPLCTR_API
+    #define SRPLCTR_LOC
+  #endif
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include "srBuf.h" // defines SRBUF
 #include "srCtrParams.h" // define SRCTR (for coordinates transform
-
-// #define _SRPL_API_DLL  // in project properties
-#ifdef _SRPL_API_DLL      //using file camSRavg.h, camSRavg.cpp to generate libSRPLavg.dll
-#define SRPLCTR_API __declspec(dllexport)
-#else              //using file libSRPLavg.h with libSRPLavg.dll
-#define SRPLCTR_API __declspec(dllimport)
-#endif
 
 class CamSRcoordTrf;
 typedef CamSRcoordTrf* SRPLCTR;
