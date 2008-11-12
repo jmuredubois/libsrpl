@@ -32,7 +32,7 @@ end
 
 if (OS == "macosx") then
   tinsert(package.buildflags, {"dylib"})
-  tinsert(package.linkflags, {"-dynamiclib"})
+  tinsert(package.linkoptions, {"-dynamiclib"})
   if (target =="cb-gcc") then
 	tinsert( package.libpaths, 
       {
