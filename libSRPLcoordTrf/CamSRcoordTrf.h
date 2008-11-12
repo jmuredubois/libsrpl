@@ -22,13 +22,6 @@
 #include "srBuf.h" // defines SRBUF
 #include "srCtrParams.h" // define SRCTR (for coordinates transform
 
-// #define _SRPL_API_DLL  // in project properties
-#ifdef _SRPL_API_DLL      //using file libSRparlab.h, libSRparlab.cpp to generate libSRparlab.dll
-#define SRPLAVG_API __declspec(dllexport)
-#else              //using file libSRparlab.h with libSRparlab.dll
-#define SRPLAVG_API __declspec(dllimport)
-#endif
-
 /**
  * Camera average class \n
  * This class: \n
