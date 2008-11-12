@@ -19,7 +19,6 @@ package.files = {
 }
 
 tinsert(package.buildflags, {"no-pch","no-main"})
---package.defines = {""}
 tinsert(package.defines, { "_SRPL_API_DLL" } )
 
 tinsert(package.config["Release"].buildflags, {"optimize-speed"})
