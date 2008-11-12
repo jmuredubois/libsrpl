@@ -7,19 +7,29 @@
  */
 
 #pragma once
+// #define _SRPL_API_DLL  // in project properties
+#ifdef _MSC_VER
+	#ifdef _SRPL_API_DLL      //using file camSRavg.h, camSRavg.cpp to generate libSRPLavg.dll
+		#define SRPLSCAT_API __declspec(dllexport)
+	#else              //using file libSRPLavg.h with libSRPLavg.dll
+		#define SRPLSCAT_API __declspec(dllimport)
+	#endif
+	#define SRPLSCAT_LOC
+#else
+  #ifdef HAVE_GCCVISIBILITYPATCH
+    #define SRPLSCAT_API __attribute__ ((visibility("default")))
+    #define SRPLCTR_LOC __attribute__ ((visibility("hidden")))
+  #else
+    #define SRPLSCAT_API
+    #define SRPLSCAT_LOC
+  #endif
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include "CamFlagNaN.h" //
 #include "srBuf.h"
-
-// #define _SRPL_API_DLL  // in project properties
-#ifdef _SRPL_API_DLL      //using file CamScattering.h, CamScattering.cpp to generate libSRPLscat.dll
-#define SRPLSCAT_API __declspec(dllexport)
-#else              //using file libSRPLscat.h with libSRPLscat.dll
-#define SRPLSCAT_API __declspec(dllimport)
-#endif
 
 class CamScattering;
 typedef CamScattering* SRPLSCAT;
