@@ -20,20 +20,14 @@
 #include <math.h>
 #include <complex> // for ANSI C99 complex numbers; WATCH OUT, this seems to be C++'s  complex<T>
 #include "srBuf.h"
-
-// #define _SRPL_API_DLL  // in project properties
-#ifdef _SRPL_API_DLL      //using file libSRparlab.h, libSRparlab.cpp to generate libSRparlab.dll
-#define SRPLAVG_API __declspec(dllexport)
-#else              //using file libSRparlab.h with libSRparlab.dll
-#define SRPLAVG_API __declspec(dllimport)
-#endif
+#include "libSRplavg.h"
 
 /**
  * Camera average class \n
  * This class: \n
  * - averages SR buffers (s) \n
  */
-class CamSRavg //!< Camera frame class
+class SRPLAVG_LOC CamSRavg //!< Camera frame class
 {
 public:
 	//! constructor
