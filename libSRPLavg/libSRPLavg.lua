@@ -18,7 +18,7 @@ package.files = {
   matchfiles("*.h", "*.cpp")
 }
 
-package.buildflags = {"no-pch","no-main"}
+tinsert(package.buildflags, {"no-pch","no-main"})
 --package.defines = {""}
 tinsert(package.defines, { "_SRPL_API_DLL" } )
 
@@ -31,6 +31,7 @@ if (OS == "windows") then
 end
 
 if (OS == "macosx") then
+  tinsert(package.buildflags, {"dylib"})
   if (target =="cb-gcc") then
 	tinsert( package.libpaths, 
       {
