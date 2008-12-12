@@ -28,7 +28,21 @@
 extern "C" {
 #endif
 
-#include "CamFlagNaN.h" //
+
+#define wxUSE_GUI 1		//!< using wxWidgets GUI components
+
+/** the environment variable WXWIN should point to a valid wxWidget
+ *  installation \n
+ *  - "$(WXWIN)/include"  should be added to the include path \n
+ *  - config specific: "$(WXWIN)/include/vc_lib/msvc/" should
+ *    be added to the include path for "setup.h"
+ */
+//#include "wx/wxprec.h"
+#ifndef  WX_PRECOMP
+  #include "wx/wx.h"
+#endif //precompiled headers
+#include "wx/wx.h"			//!< base for wxWindows
+#include "wx/ffile.h"		//!< for files
 #include "srBuf.h"
 
 class CamFileSRPL;
