@@ -26,7 +26,7 @@ class CamFileSRPL //!< Camera frame class
 {
 public:
 	//! constructor
-    CamFileSRPL(SRBUF srBuf);
+    CamFileSRPL(SRBUF srBuf, bool readOnly);
 	//! destructor
 	~CamFileSRPL();
 	//!  Read method

@@ -15,9 +15,11 @@
  */
 CamFileSRPL::CamFileSRPL(SRBUF srBuf)
 {
-	_imgSz.cx = srBuf.nCols;
-	_imgSz.cy = srBuf.nRows;
-
+	_curBuf.amp = srBuf.pha;
+	_curBuf.pha = srBuf.pha;
+	_curBuf.nCols = srBuf.nCols;
+	_curBuf.nRows = srBuf.nRows;
+	_curBuf.bufferSizeInBytes = srBuf.bufferSizeInBytes;
 }
 
 /**
@@ -73,49 +75,13 @@ int CamFileSRPL::SetFileNameAmp(const char* fn)
 int CamFileSRPL::SetFileNameAmp(const char* fn)
 {
 	int res = 0;
-	// define local variables for image dimensions
-	int wdt = _imgSz.cx;	// image width
-	int hgt = _imgSz.cy;	// image height
-	int num=wdt*hgt;	// pixel count
-
-	// file open operation
-	FILE* pModel = fopen(fn, "rb");
-	if(!pModel) return -1;
-	if(!_cxBuf) return -2;
-	double val;
-	double max=0.0; int indMax = 0; // DEBUG, for parity filter
-	for(int k=0; k<num ; k++) // loop on all coefficients
-	{
-		fread(&val, sizeof(double), 1, pModel);
-		_cxBuf[k] = std::complex<double>(val, 0.0);
-		_psf[k] = val;
-		//_cxBuf[k] = std::complex<double>(0.0, 0.0);// DEBUG DEBUG DEBUG
-		if(k==0)// DEBUG, for parity filter
-		{
-			max = val;
-		}
-		if(val>max)// DEBUG, for parity filter
-		{
-			max = val;
-			indMax = k;
-		}
-		_cxPar[k] = std::complex<double>(0.0, 0.0);// DEBUG, for parity filter
-	}
-	//_cxBuf[(int)floor(num/2.0)-0] = std::complex<double>(1.0, 0.0);// DEBUG DEBUG DEBUG
-	_cxPar[indMax] = std::complex<double>(1.0,0.0); //DEBUG, for parity unity filter
-
-	res+=fclose(pModel); //close file
-
-	res+= UpdateScatPsf4PadDft(); // _cxBuf, _cxFilt and _cxPar will NOT be changed
-	res+= UpdateScatPsf4Dft();	  // _cxBuf, _cxFilt and _cxPar will be changed
-
 	return res;
 }
 
 SRPLFILE_API int PLFL_Open(SRPLFILE* srplFile, SRBUF srBuf, bool readOnly)
 {
   //if(!srBuf)return -1;
-  *srplFile= new CamFileSRPL(srBuf);
+  *srplFile= new CamFileSRPL(srBuf, readOnly);
   return 0;
 }
 SRPLFILE_API int PLFL_Close(SRPLFILE srplFile)
