@@ -43,3 +43,4 @@ SRPLSCAT_API int PLSC_LoadScatSettings(SRPLSCAT srplScat, const char* fn);
 #ifdef __cplusplus
 }
 #endif
+
