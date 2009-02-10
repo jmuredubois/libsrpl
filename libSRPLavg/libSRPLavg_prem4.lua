@@ -1,14 +1,6 @@
---*	NOTES:
---*		- use the '/' slash for all paths.
---*****************************************************************************
-
---******* Initial Setup ************
---*	Most of the setting are set here.
---**********************************
-
--- Set the name of your package.
+-- Set package name.
 project "libSRPLavg4"
-	-- Set this if you want a different name for your target than the projects's name.
+	-- if you want a different name for your target than the projects's name.
 	outName						= "libSRPLavg4"
 	uuid						"17F81D4D-B123-451e-A3B1-733DC3A9FB72"
 	-- Set the files to include/exclude.
