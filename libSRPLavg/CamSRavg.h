@@ -20,6 +20,7 @@
 #include <math.h>
 #include <complex> // for ANSI C99 complex numbers; WATCH OUT, this seems to be C++'s  complex<T>
 #include "srBuf.h"
+#include "srVarBuf.h"
 #include "libSRplavg.h"
 
 /**
@@ -41,12 +42,14 @@ public:
 	//! End Learn background method
 	//int LearnBackgroundEnd();
 	SRBUF   GetAvgBuf();	//!< Returns the current average buffer
+	SRVARBUF   GetAvgVar();	//!< Returns the current average buffer
 	int   GetAvgCnt(){return _avgCnt;};		//!< Returns the current average count
 	int	   SetAvgAlpha(double alpha); //!< Sets Alpha for IIR learning (alpha = 0.0 disables IIR)
 	double GetAvgAlpha(); //!< retrieves alaph for IIR learning (alpha==0.0 means IIR is disabled)
 
 private:
-	SRBUF   _avgBuf;
+	SRBUF   _avgBuf;	//! buffer for average values export
+	SRVARBUF   _avgVar;	//! buffer for variance export
 	double	_avgAlpha;		//!< alpha factor for adaptive background learning
 	double	*_avgImgPha, *_avgImgAmp;		//!< average image buffer (double)
 							/**< contains iterated average data of distance image
