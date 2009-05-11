@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PersPass>
+    <Segmentation>
+        <zDiff   thd="0.05"   val="001"/> <!-- z_difference =z_background-z_current -->
+        <zDiff   thd="0.25"   val="025"/> <!-- z_difference =z_background-z_current -->
+        <zDiff   thd="0.50"   val="050"/> <!-- z_difference =z_background-z_current -->
+        <zDiff   thd="0.75"   val="075"/> <!-- z_difference =z_background-z_current -->
+        <zDiff   thd="1.00"   val="100"/> <!-- z_difference =z_background-z_current -->
+        <zDiff   thd="1.25"   val="125"/> <!-- z_difference =z_background-z_current -->
+        <zDiff   thd="1.50"   val="150"/> <!-- z_difference =z_background-z_current -->
+        <zDiff   thd="1.75"   val="175"/> <!-- z_difference =z_background-z_current -->
+        <zDiff   thd="2.00"   val="200"/> <!-- z_difference =z_background-z_current -->
+        <zDiff   thd="2.25"   val="225"/> <!-- z_difference =z_background-z_current -->
+        <zDiff   thd="2.50"   val="250"/> <!-- z_difference =z_background-z_current -->
+        <zDiff   thd="2.75"   val="255"/> <!-- z_difference =z_background-z_current -->
+    </Segmentation>
+</PersPass>

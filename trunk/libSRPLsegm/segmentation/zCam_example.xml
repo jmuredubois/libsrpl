@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PersPass>
+    <Segmentation>
+        <zCam    thd="0.05"   val="255"/> <!-- z distance in meter from camera -->
+        <zCam    thd="0.50"   val="250"/> <!-- z distance in meter from camera -->
+        <zCam    thd="0.75"   val="225"/> <!-- z distance in meter from camera -->
+        <zCam    thd="1.00"   val="200"/> <!-- z distance in meter from camera -->
+        <zCam    thd="1.25"   val="175"/> <!-- z distance in meter from camera -->
+        <zCam    thd="1.50"   val="150"/> <!-- z distance in meter from camera -->
+        <zCam    thd="1.75"   val="125"/> <!-- z distance in meter from camera -->
+        <zCam    thd="2.00"   val="100"/> <!-- z distance in meter from camera -->
+        <zCam    thd="2.25"   val="075"/> <!-- z distance in meter from camera -->
+        <zCam    thd="2.50"   val="050"/> <!-- z distance in meter from camera -->
+        <zCam    thd="2.75"   val="025"/> <!-- z distance in meter from camera -->
+        <zCam    thd="3.00"   val="001"/> <!-- z distance in meter from camera -->
+    </Segmentation>
+</PersPass>

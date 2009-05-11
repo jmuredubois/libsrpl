@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PersPass>
+    <Segmentation>
+	  <surfCam thd="625E-6"   val="255"/> <!-- surface in m^2 : 2.5x2.5cm (=E-4 cm^2->m^2)-->
+        <surfCam thd="625E-4"   val="250"/> <!-- surface in m^2 :  25x 25cm (=E-4 cm^2->m^2)-->
+        <surfCam thd="2500E-4"  val="225"/> <!-- surface in m^2 :  50x 50cm (=E-4 cm^2->m^2)-->
+        <surfCam thd="5625E-4"  val="200"/> <!-- surface in m^2 :  75x 75cm (=E-4 cm^2->m^2)-->
+        <surfCam thd="1.0"      val="175"/> <!-- surface in m^2 : 100x100cm -->
+	  <surfCam thd="1.5625"   val="150"/> <!-- surface in m^2 : 125x125cm (=E-4 cm^2->m^2)-->
+        <surfCam thd="2.25"     val="125"/> <!-- surface in m^2 : 150x150cm (=E-4 cm^2->m^2)-->
+        <surfCam thd="2.0625"   val="100"/> <!-- surface in m^2 : 175x175cm (=E-4 cm^2->m^2)-->
+        <surfCam thd="4.0"      val="075"/> <!-- surface in m^2 : 200x 200cm -->
+	  <surfCam thd="5.0625"   val="050"/> <!-- surface in m^2 : 225x225cm (=E-4 cm^2->m^2)-->
+        <surfCam thd="6.25"     val="025"/> <!-- surface in m^2 : 250x250cm (=E-4 cm^2->m^2)-->
+        <surfCam thd="7.5625"   val="001"/> <!-- surface in m^2 : 275x275cm (=E-4 cm^2->m^2)-->
+    </Segmentation>
+</PersPass>

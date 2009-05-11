@@ -23,6 +23,20 @@
 #include "srSegmBuf.h"
 #include "libSRPLsegm.h"
 
+//! class for kernels used in scattering compensation
+class SrSegm
+{
+public:
+  enum Type{ST_KSTD,ST_KSTDSTOP, ST_ZCAM, ST_ZDIFF, ST_IDIFF, ST_SURFCAM, ST_SURFDIFF}; //!< enum for type of kernel
+  SrSegm();	//!< constructor
+  SrSegm(Type type, float thresh, unsigned char val):
+						_type(type),
+						_thresh(thresh), _val(val){}
+  Type  _type;			//!< type of kernel (preferably ST_KSTD)
+  float   _thresh;			//!< threshold for segmentation
+  unsigned char _val;	//!< value to paint in segmentation map
+};
+
 /**
  * Camera average class \n
  * This class: \n
@@ -37,13 +51,14 @@ public:
 	~CamSRsegm();
 	int LoadSegmSettings(const char* fn);	//!< load segmentation parameters
 	//! Learn background method
-	int Segment(SRBUF srBuf, SRBUF srBG, SRVARBUF srVar);
+	int Segment(SRBUF srBuf, NANBUF nanBuf, SRBUF srBG, NANBUF nanBG, SRVARBUF srVar);
 	SRSEGMBUF   GetSegmBuf();	//!< Returns the current average buffer
 	
 
 private:
 	SRSEGMBUF   _segmBuf;
 	SRSEGMBUF   _segmNonBayesBuf;
+	std::list<SrSegm> _segParaList;	//!< segmentation parameter list
 
 #ifdef SEGMTIMER
   CPreciseTimer _segmTimer;	    //!< timer for segmentation operation
