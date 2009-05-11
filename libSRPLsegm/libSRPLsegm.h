@@ -33,12 +33,22 @@ extern "C" {
 #include "srVarBuf.h"
 #include "srSegmBuf.h"
 
+#ifndef NANBUFHEADER
+#define NANBUFHEADER
+typedef struct nanVar {
+    bool* nanBool;
+    int nCols;
+    int nRows;
+    int bufferSizeInBytes;
+} NANBUF;
+#endif
+
 class SRPLSEGM_LOC CamSRsegm;
 typedef CamSRsegm* SRPLSEGM;
 SRPLSEGM_API int PLSEGM_Open(SRPLSEGM* srplSegm, SRBUF srBuf );
 SRPLSEGM_API int PLSEGM_Close(SRPLSEGM srplSegm);
 SRPLSEGM_API int PLSEGM_LoadSegmSettings(SRPLSEGM srplSegm, const char* fn);
-SRPLSEGM_API int PLSEGM_Segment(SRPLSEGM srplSegm, SRBUF srBuf, SRBUF srBG, SRVARBUF srVar);
+SRPLSEGM_API int PLSEGM_Segment(SRPLSEGM srplSegm, SRBUF srBuf, NANBUF nanBuf, SRBUF srBG, NANBUF nanBG, SRVARBUF srVar);
 SRPLSEGM_API SRSEGMBUF PLSEGM_GetSegmBuf(SRPLSEGM srplSegm);
 
 #ifdef __cplusplus

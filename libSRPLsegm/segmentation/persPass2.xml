@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PersPass>
+    <Segmentation>
+        <zCam thd="0.10"   val= "10"/> <!-- z distance in meter from camera -->
+        <zCam thd="0.20"   val= "20"/> <!-- z distance in meter from camera -->
+        <zCam thd="0.30"   val= "30"/> <!-- z distance in meter from camera -->
+        <zCam thd="0.40"   val= "40"/> <!-- z distance in meter from camera -->
+        <zCam thd="0.50"   val= "50"/> <!-- z distance in meter from camera -->
+        <zCam thd="0.60"   val= "60"/> <!-- z distance in meter from camera -->
+        <zCam thd="0.70"   val= "70"/> <!-- z distance in meter from camera -->
+        <zCam thd="0.80"   val= "80"/> <!-- z distance in meter from camera -->
+        <zCam thd="0.90"   val= "90"/> <!-- z distance in meter from camera -->
+        <zCam thd="1.00"   val="100"/> <!-- z distance in meter from camera -->
+        <zCam thd="1.10"   val="110"/> <!-- z distance in meter from camera -->
+        <zCam thd="1.20"   val="120"/> <!-- z distance in meter from camera -->
+        <zCam thd="1.30"   val="130"/> <!-- z distance in meter from camera -->
+        <zCam thd="1.40"   val="140"/> <!-- z distance in meter from camera -->
+        <zCam thd="1.50"   val="150"/> <!-- z distance in meter from camera -->
+        <zCam thd="1.60"   val="160"/> <!-- z distance in meter from camera -->
+        <zCam thd="1.70"   val="170"/> <!-- z distance in meter from camera -->
+        <zCam thd="1.80"   val="180"/> <!-- z distance in meter from camera -->
+        <zCam thd="1.90"   val="190"/> <!-- z distance in meter from camera -->
+        <zCam thd="2.00"   val="200"/> <!-- z distance in meter from camera -->
+        <zCam thd="2.10"   val="210"/> <!-- z distance in meter from camera -->
+        <zCam thd="2.30"   val="220"/> <!-- z distance in meter from camera -->
+        <zCam thd="2.50"   val="230"/> <!-- z distance in meter from camera -->
+        <zCam thd="2.70"   val="240"/> <!-- z distance in meter from camera -->
+        <zCam thd="2.90"   val="250"/> <!-- z distance in meter from camera -->
+    </Segmentation>
+</PersPass>

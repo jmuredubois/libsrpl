@@ -79,11 +79,184 @@ int CamSRsegm::LoadSegmSettings(const char* fn)
 	 - Set as foreground iff above threshold. \n
 */
 //! Segmentation method.
-int CamSRsegm::Segment(SRBUF srBuf, SRBUF srBG, SRVARBUF srVar)
+int CamSRsegm::Segment(SRBUF srBuf, NANBUF nanBuf, SRBUF srBG, NANBUF nanBG, SRVARBUF srVar)
 {
 	int res = 0;
+	// MAKE SEGMENTATION
+	//
+	unsigned int sizeBufUCh = (unsigned int) _segmBuf.nCols*_segmBuf.nRows*sizeof(unsigned char); // size of double buffer
+	unsigned char* segmBayB = _segmBuf.fg;
+	memset( (void*) _segmBuf.bg, 0x00, sizeBufUCh);	// reset segmented image
+    // list of segmentation setting from XML file
+	std::list<SrSegm>::iterator begin=_segParaList.begin(),end=_segParaList.end(),itr;
+    // treat the list of settings sequentially
+    // -> ORDER MATTERS IN XML FILE !!!
+  //for(itr=begin;itr!=end;itr++)
+  //{
+  //  SrSegm& thd=*itr; // read current segmentation setting
+  //  switch(thd._type) // depending on segmentation setting type
+  //  {
+  //    case SrSegm::ST_ZCAM:		// zCam segmentation
+  //    {
+  //      unsigned short val=(unsigned short)(thd._thresh*1000.f);	// convert threshold value from meter to millimeter
+  //      for(i=0;i<num;i++)				// for each pixel
+  //      {
+		//  if(_imgNaN[i])   continue;	// do not process NIL pixels
+  //        if(_segmImgB[i]) continue;	// do not reprocess already segmented pixels
+  //        if(_z[i]<val)					// when value is below threshold (distance FROM camera)
+  //          _segmImgB[i]=thd._val;		// assign appropriate value to segmented pixel
+  //      }
+  //      break;							// break to the next segmentation setting
+  //    }
+  //    case SrSegm::TT_ZDIFF:	// zDiff segmentation
+  //    {
+  //      WORD val=(WORD)(thd._thresh*1000.f);	// convert threshold value from meter to millimeter
+  //      for(i=0;i<num;i++)					// for each pixel
+  //      {
+		//  if(_imgNaN[i] || _imgNaNbg[i])   continue;	// do not process NIL pixels
+  //        if(_segmImgB[i]) continue;		// do not reprocess already segmented pixels
+  //        int diff=(int)_zBG[i]-(int)_z[i];	// calculate difference, should be positive (background is farther away from camera)
+  //        if(diff<val)						// when value is below threshold
+  //          _segmImgB[i]=thd._val;			// assign appropriate value to segmented pixel
+  //      }
+  //      break;							// break to the next segmentation setting
+  //    }
+	 // case SrSegm::TT_IDIFF:	// ampDiff segmentation
+  //    {
+  //      WORD val=(WORD)(thd._thresh);	// get threshold value
+  //      for(i=0;i<num;i++)				// for each pixel
+  //      {
+		//  if(_imgNaN[i] || _imgNaNbg[i])   continue;	// do not process NIL pixels
+  //        if(_segmImgB[i]) continue;					// do not reprocess already segmented pixels
+  //        int diff=(int)intImg[i]-(int)_bgImgW[i+num];	// calculate difference, should be positive (background reflects less light)
+  //        if(diff<val)					// when value is below threshold
+  //          _segmImgB[i]=thd._val;		// assign appropriate value to segmented pixel
+  //      }
+  //      break;							// break to the next segmentation setting
+  //    }
+  //    case SrSegm::TT_SURFCAM:	// surfCam segmentation
+  //    {
+  //      WORD bin,val;
+  //      float surf=0.f;
+  //      for(bin=0;bin<_countof(_histS_c);bin++)		// go through surfCam histogram
+  //      {
+  //        surf+=_histS_c[bin];	// accumulate surface
+  //        if(surf>=thd._thresh)	// until threshold (m^2) is reached
+  //          break;
+  //      }
+		//// compute z value (val) corresponding to surface
+  //        // bin=(0..255)*(256.f/3000.f)
+  //        // convert bin to mm: bin*3000.f/256.f
+  //      val=(WORD)(bin*3000.f/256.f);	// height in mm
+  //      for(i=0;i<num;i++)				// for each pixel
+  //      {
+  //        if(_segmImgB[i]) continue;	// do not process NIL pixels
+		//  if(_imgNaN[i])   continue;	// do not reprocess already segmented pixels
+  //        if(_z[i]<val)					// if the pixel is closer to camera (i.e. higher) than threshold
+  //          _segmImgB[i]=thd._val;		// assign appropriate value to segmented pixel
+  //      }
+		//break;							// break to the next segmentation setting
+  //    }
+	 // case SrSegm::TT_SURFDIFF:	// surfDiff segmentation
+  //    {
+  //      WORD bin,val;
+  //      float surf=0.f;
+  //      for(bin=0;bin<_countof(_histS_d);bin++)	// go through surfDiff histogram
+  //      {
+  //        surf+=_histS_d[bin];		// accumulate surface
+  //        if(surf>=thd._thresh)		// until threshold (m^2) is reached
+  //          break;
+  //      }
+		//// compute z value (val) corresponding to surface
+  //        // bin=(0..255)*(256.f/3000.f)
+  //        // convert bin to mm: bin*3000.f/256.f
+  //      val=(WORD)(bin*3000.f/256.f);	// height in mm
+  //      for(i=0;i<num;i++)				// for each pixel
+  //      {
+		//  if(_imgNaN[i] || _imgNaNbg[i])   continue;	// do not process NIL pixels
+  //        if(_segmImgB[i]) continue;	// do not reprocess already segmented pixels
+  //        if(_z[i]<val)					// if the pixel is closer to camera (i.e. higher) than threshold
+  //          _segmImgB[i]=thd._val;		// assign appropriate value to segmented pixel
+  //      }
+		//break;							// break to the next segmentation setting
+  //    }
+	 // case SrSegm::TT_KSTD:		// segmentation based on ratio of difference to std
+  //    {
+  //    	/*
+		//WORD* phaSR = (WORD*)SR_GetImage(_srCam,0); // Get SR current amplitude image
+		//double kFloat;  // some variable used in loop
+  //      float val=(float)(thd._thresh);	// convert threshold value from meter to millimeter
+  //      for(i=0;i<num;i++)				// for each pixel
+  //      {
+		//  if(_imgNaN[i] || _imgNaNbg[i])   continue;	// do not process NIL pixels
+  //        if(_segmImgB[i]) continue;	// do not reprocess already segmented pixels
+		//  if(_bgVarD[i]<=0.0) continue; // do not segment pixels with 0 variance.
+		//  kFloat =  sqrt( (( (double)phaSR[i] - _bgImgD[i]) * ( (double)phaSR[i] - _bgImgD[i]) ) / (_bgVarD[i]) );
+  //        if(kFloat>val)					// when value is above threshold
+  //          _segmImgB[i]=thd._val;		// assign appropriate value to segmented pixel
+  //      }*/
+  //      break;							// break to the next segmentation setting
+  //    }
+  //  }
+  //}
+  int num=srBuf.nCols*srBuf.nRows; // Get dimension of SR image
+  memset(segmBayB,0x00,num*sizeof(unsigned char));	// reset segmented image
+  unsigned short* phaSR = srBuf.pha; // Get SR current amplitude image
+  unsigned short* ampSR = srBuf.amp; // Get SR current amplitude image
+  bool* imgNaN = nanBuf.nanBool;
+  bool* imgNaNbg = nanBG.nanBool;
+  unsigned short* ampBG = srBG.amp; // Get SR BG amplitude image
+  unsigned short* phaBG = srBG.pha; // Get SR BG amplitude image
+  double* bgVarD = srVar.pha;
+  double kFloat;  // some variable used in loop
+  /*std::list<Thrhld>::iterator*/ begin=_segParaList.begin(),end=_segParaList.end(),itr;
+    // treat the list of settings sequentially
+    // -> ORDER MATTERS IN XML FILE !!!
+  for(itr=begin;itr!=end;itr++)
+  {
+    SrSegm& thd=*itr; // read current segmentation setting
+    switch(thd._type) // depending on segmentation setting type
+    {
+      case SrSegm::ST_KSTD:		// segmentation based on ratio of difference to std
+      {
+        float val=(float)(thd._thresh);	// read threshold value as float
+        for(int i=0;i<num;i++)				// for each pixel
+        {
+		  if(imgNaN[i] || imgNaNbg[i])   continue;	// do not process NIL pixels
+          if(segmBayB[i]) continue;	// do not reprocess already segmented pixels
+		  if(bgVarD[i]<=0.0) continue; // do not segment pixels with 0 variance.
+		  // kFloat =  sqrt( (( (double)phaSR[i] - _bgImgD[i]) * ( (double)phaSR[i] - _bgImgD[i]) ) / (_bgVarD[i]) );
+		  kFloat =  sqrt( (( (double)phaSR[i] - (double)phaBG[i]) * ( (double)phaSR[i] - (double)phaBG[i]) ) / (bgVarD[i]) );
+		  // // //kFloat =  sqrt( (( (double)ampSR[i] - _bgImgD[i+num]) * ( (double)ampSR[i] - _bgImgD[i+num]) ) / (_bgVarD[i+num]) ); // test amplitude segmentation NOT USED ANYMORE
+          if(kFloat>val)					// when value is above threshold
+            segmBayB[i]=thd._val;		// assign appropriate value to segmented pixel
+        }
+        break;							// break to the next segmentation setting
+      }
+	  case SrSegm::ST_ZCAM:		// zCam segmentation
+      {
+        break;							// break to the next segmentation setting
+      }
+      case SrSegm::ST_ZDIFF:	// zDiff segmentation
+      {
+        break;							// break to the next segmentation setting
+      }
+	  case SrSegm::ST_IDIFF:	// ampDiff segmentation
+      {
+        break;							// break to the next segmentation setting
+      }
+      case SrSegm::ST_SURFCAM:	// surfCam segmentation
+      {
+		break;							// break to the next segmentation setting
+      }
+	  case SrSegm::ST_SURFDIFF:	// surfDiff segmentation
+      {
+		break;							// break to the next segmentation setting
+      }
+	}
+  }
 	
-  return res;
+	return res;
 }
 
 SRSEGMBUF   CamSRsegm::GetSegmBuf() //!< Returns the current segmentation buffer
@@ -115,10 +288,10 @@ SRPLSEGM_API int PLSEGM_LoadSegmSettings(SRPLSEGM srplSegm, const char* fn)
   if(!srplSegm)return -1;
   return  srplSegm->LoadSegmSettings(fn);
 }
-SRPLSEGM_API int PLSEGM_Segment(SRPLSEGM srplSegm, SRBUF srBuf, SRBUF srBG, SRVARBUF srVar)
+SRPLSEGM_API int PLSEGM_Segment(SRPLSEGM srplSegm, SRBUF srBuf, NANBUF nanBuf, SRBUF srBG, NANBUF nanBG, SRVARBUF srVar)
 {
   if(!srplSegm)return -1;
-  return srplSegm->Segment(srBuf,srBG,srVar);
+  return srplSegm->Segment(srBuf, nanBuf, srBG, nanBG, srVar);
 }
 
 SRPLSEGM_API SRSEGMBUF PLSEGM_GetSegmBuf(SRPLSEGM srplSegm)

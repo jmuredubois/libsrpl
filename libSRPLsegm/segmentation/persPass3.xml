@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PersPass>
+    <Segmentation>
+        <zCam    thd="0.05"   val="255"/> <!-- z distance in meter from camera -->
+        <zCam    thd="0.50"   val="250"/> <!-- z distance in meter from camera -->
+        <zCam    thd="0.75"   val="220"/> <!-- z distance in meter from camera -->
+        <zCam    thd="1.00"   val="160"/> <!-- z distance in meter from camera -->
+        <zCam    thd="1.50"   val="130"/> <!-- z distance in meter from camera -->
+        <zDiff   thd="0.00"   val="10"/> <!-- z_difference =z_background-z_current -->
+        <zDiff   thd="0.10"   val="30"/> <!-- z_difference =z_background-z_current -->
+        <zDiff   thd="0.20"   val="50"/> <!-- z_difference =z_background-z_current -->
+        <zDiff   thd="0.30"   val="70"/> <!-- z_difference =z_background-z_current -->
+        <zDiff   thd="0.40"   val="90"/> <!-- z_difference =z_background-z_current -->
+        <zDiff   thd="1.50"   val="110"/> <!-- z_difference =z_background-z_current -->
+    </Segmentation>
+</PersPass>
