@@ -42,4 +42,19 @@ if (OS == "macosx") then
   end
 end
 
+--package includes for TICPP
+tinsert(package.config["Debug"].links,   { "ticppd"})
+tinsert(package.config["Release"].links,   { "ticpp"})
+tinsert(package.includepaths,
+  {
+    string.format('%s',os.getenv("JMU_TICPP"))
+  }
+)
+tinsert( package.libpaths, 
+  {
+    string.format('%s%s',os.getenv("JMU_TICPP"), "/lib")
+  }
+)
+--END OF package includes for TICPP
+
 

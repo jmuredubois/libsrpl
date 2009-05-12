@@ -15,7 +15,8 @@
 	#define SAFE_FREE(p)       { if(p) { delete (p);     (p)=0; } }
 #endif
 
-
+#define TIXML_USE_TICPP
+#include "ticpp.h" //Open source XML parser
 #include <list>		//for std::list
 #include <math.h>
 #include <complex> // for ANSI C99 complex numbers; WATCH OUT, this seems to be C++'s  complex<T>

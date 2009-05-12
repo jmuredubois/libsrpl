@@ -33,7 +33,8 @@ public:
 	//! destructor
 	~CamFlagNaN();
 	//! FlagNaN method
-	bool* FlagNaN(SRBUF nanBuf);
+	bool* FlagNaNbool(SRBUF nanBuf);
+	NANBUF FlagNaN(SRBUF nanBuf);
 	//bool* GetNaNs();		//!< Returns the NaN buffer (bool)
 	
 
