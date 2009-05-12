@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PersPass>
+    <Segmentation>
+	  <kStd  thd="2000.0"   val="255"/> <!-- very large deviation -->
+        <kStd  thd="0009.0"   val="250"/> <!-- very large deviation -->
+        <kStd  thd="0006.0"   val="120"/> <!--  large deviation -->
+        <kStd  thd="0003.0"   val="120"/> <!--  hopefully out of noise  -->
+        <kStd  thd="0001.0"   val="030"/> <!-- into the noise -->
+        <kStd  thd="-000.1"   val="001"/> <!-- no deviation -->
+    </Segmentation>
+</PersPass>
