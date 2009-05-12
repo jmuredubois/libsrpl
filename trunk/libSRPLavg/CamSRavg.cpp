@@ -376,3 +376,14 @@ SRPLAVG_API double PLAVG_GetAvgAplha(SRPLAVG srplAvg)
   if(!srplAvg)return -1.0;
   return  srplAvg->GetAvgAlpha();
 }
+
+SRPLAVG_API SRVARBUF PLAVG_GetAvgVar(SRPLAVG srplAvg)
+{
+  if(!srplAvg)
+  { 
+	  SRVARBUF buf; buf.amp=NULL; buf.pha = NULL; 
+	  buf.nCols = 0; buf.nRows=0; buf.bufferSizeInBytes=0;
+	  return buf;
+  }
+  return srplAvg->GetAvgVar();
+}

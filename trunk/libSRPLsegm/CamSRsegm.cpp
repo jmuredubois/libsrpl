@@ -68,7 +68,39 @@ void CamSRsegm::SegmBufFree()
 int CamSRsegm::LoadSegmSettings(const char* fn)
 {
 	int res = 0;
+	try
+	{
+		ticpp::Document doc( fn );
+		doc.LoadFile();
 
+		_segParaList.erase(_segParaList.begin(),_segParaList.end());
+	
+		ticpp::Element* pThd = doc.FirstChildElement("PersPass")->FirstChildElement("Segmentation")->FirstChildElement("kStd");
+		while(pThd != NULL)
+		{
+			float thresh=0;
+			int val=0;
+			unsigned char valChar;
+			
+			pThd->GetAttribute("thd", &thresh);
+			pThd->GetAttribute("val", &val);
+			valChar = (unsigned char) val;
+			_segParaList.push_back(SrSegm(SrSegm::ST_KSTD, thresh, valChar));
+			pThd = pThd->NextSiblingElement("kStd", false);
+		}
+
+	}
+	catch( ticpp::Exception& ex )
+	{
+		std::cout << ex.what();
+		return -1;
+	}
+	catch(...)
+	{
+		_segParaList.push_back(SrSegm(SrSegm::ST_KSTD, 03.0, 45)); // dummy values
+		return -1;
+	}
+	//res += InitKernels();
 	return res;
 }
 

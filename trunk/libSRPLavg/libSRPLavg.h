@@ -30,6 +30,7 @@ extern "C" {
 #endif
 
 #include "srBuf.h"
+#include "srVarBuf.h"
 
 class SRPLAVG_LOC CamSRavg;
 typedef CamSRavg* SRPLAVG;
@@ -39,6 +40,7 @@ SRPLAVG_API int PLAVG_LearnBackgroundInitReset(SRPLAVG srplAvg, SRBUF srBuf);
 SRPLAVG_API int PLAVG_LearnBackground(SRPLAVG srplAvg, SRBUF srBuf);
 //SRPLAVG_API int PLAVG_LearnBackgroundEnd(SRPLAVG srplAvg);
 SRPLAVG_API SRBUF PLAVG_GetAvgBuf(SRPLAVG srplAvg);
+SRPLAVG_API SRVARBUF PLAVG_GetAvgVar(SRPLAVG srplAvg);
 SRPLAVG_API int PLAVG_GetAvgCnt(SRPLAVG srplAvg);
 SRPLAVG_API int PLAVG_SetAvgAlpha(SRPLAVG srplAvg, double alpha);
 SRPLAVG_API double PLAVG_GetAvgAlpha(SRPLAVG srplAvg);
