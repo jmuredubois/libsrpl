@@ -1897,8 +1897,12 @@ int CamScattering::LoadScatSettings(const char* fn)
 		doc.LoadFile();
 
 		_kernelList.erase(_kernelList.begin(),_kernelList.end());
-	
-		ticpp::Element* pKrn = doc.FirstChildElement("PersPass")->FirstChildElement("ScatComp")->FirstChildElement("kernel");
+
+		ticpp::Element* pKrn = doc.FirstChildElement("libSRPL")->FirstChildElement("ScatComp")->FirstChildElement("kernel");
+		if(pKrn == NULL)
+		{
+			pKrn = doc.FirstChildElement("PersPass")->FirstChildElement("ScatComp")->FirstChildElement("kernel");
+		}
 		while(pKrn != NULL)
 		{
 			int numCoeffsH=0;
