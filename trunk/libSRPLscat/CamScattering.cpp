@@ -1898,9 +1898,14 @@ int CamScattering::LoadScatSettings(const char* fn)
 
 		_kernelList.erase(_kernelList.begin(),_kernelList.end());
 
-		ticpp::Element* pKrn = doc.FirstChildElement("libSRPL")->FirstChildElement("ScatComp")->FirstChildElement("kernel");
-		if(pKrn == NULL)
+		ticpp::Element* pKrn = NULL;
+		try
 		{
+			pKrn = doc.FirstChildElement("libSRPL")->FirstChildElement("ScatComp")->FirstChildElement("kernel");
+		}
+		catch( ticpp::Exception& ex )
+		{
+			std::cout << ex.what();
 			pKrn = doc.FirstChildElement("PersPass")->FirstChildElement("ScatComp")->FirstChildElement("kernel");
 		}
 		while(pKrn != NULL)

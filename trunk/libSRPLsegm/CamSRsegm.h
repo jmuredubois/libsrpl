@@ -53,6 +53,7 @@ public:
 	int LoadSegmSettings(const char* fn);	//!< load segmentation parameters
 	//! Learn background method
 	int Segment(SRBUF srBuf, NANBUF nanBuf, SRBUF srBG, NANBUF nanBG, SRVARBUF srVar);
+	int SegmentXYZ(SRBUF srBuf, NANBUF nanBuf, SRBUF srBG, NANBUF nanBG, SRVARBUF srVar, unsigned short* z, unsigned short* zBG);
 	SRSEGMBUF   GetSegmBuf();	//!< Returns the current average buffer
 	
 
@@ -60,6 +61,11 @@ private:
 	SRSEGMBUF   _segmBuf;
 	SRSEGMBUF   _segmNonBayesBuf;
 	std::list<SrSegm> _segParaList;	//!< segmentation parameter list
+	unsigned short	_histZ_c[256];	//!< histogram of zCam distances
+	float			_histS_c[256];	//!< histogram of surfCam surfaces
+	unsigned short	_histZ_d[256];	//!< histogram of zDiff distances
+	float			_histS_d[256];	//! histogram of surfDiff surfaces
+	unsigned short	_histI_d[256];	//!< histogram of intensity differences
 
 #ifdef SEGMTIMER
   CPreciseTimer _segmTimer;	    //!< timer for segmentation operation
