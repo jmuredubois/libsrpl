@@ -65,7 +65,7 @@ void CamSRransac::RscBufFree()
 	return;
 }
 
-//! Background learning initialization.
+//! RANSAC CALL.
 int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx)
 {
 	int res = 0;
@@ -89,7 +89,42 @@ int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool
 	return res;
 }
 
+//! generate indexes permutations
+int CamSRransac::GenPerms(bool* isNaN, unsigned char* segmMap)
+{
+	int res = 0;
+    if( (_inBuf.nCols<1) || (_inBuf.nRows<1) ){return -1;};
+	int num = _inBuf.nCols*_inBuf.nRows; 
+	if( (isNaN!=NULL) &&  (segmMap!=NULL))
+	{
+	  srand ( this->time_seed() );
+	  _perms.erase(_perms.begin(),_perms.end());
+	  std::vector<int>::iterator it;
+	  int k, N;
+	  for(int i = 0; i<num; i++)
+	  {
+		  N=_perms.size();
+		  it=_perms.begin();
+		  k = rand() / ( RAND_MAX / N + 1 );
+		  _perms.insert(it+k,i);
+	  } // END OF loop on all points
+	} // END OF if protecting from null buffers
+	return res;
+}
 
+//! for better random numbers
+// from: http://eternallyconfuzzled.com/arts/jsw_art_rand.aspx
+unsigned int CamSRransac::time_seed()
+{
+	time_t now = std::time ( 0 );
+  unsigned char *p = (unsigned char *)&now;
+  unsigned int seed = 0;
+  size_t i;
+  for ( i = 0; i < sizeof now; i++ )
+    seed = seed * ( UCHAR_MAX + 2U ) + p[i];
+  return seed;
+}
+ 
 
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////

@@ -19,6 +19,7 @@
 #include <list>		//for std::list
 #include <vector>	//for std::vector
 #include <math.h>
+#include <ctime>	// for time
 #include <complex> // for ANSI C99 complex numbers; WATCH OUT, this seems to be C++'s  complex<T>
 #include "srBuf.h" // defines SRBUF
 #include "srSegmBuf.h" // defines SRBUF
@@ -45,6 +46,7 @@ private:
 	float  _dist2pla; 
 	int	   _nInliers;
 	std::vector<int> _inliers;
+	std::vector<int> _perms;
 	SRSEGMBUF _inBuf;
 	int    _nIterMax;
 	int    _inliersStop;
@@ -59,4 +61,6 @@ private:
 private:
 	void RscBufAlloc();
 	void RscBufFree();
+	int GenPerms(bool* isNaN, unsigned char* segmMap); //!< generate permutations
+	unsigned int time_seed();
 };
