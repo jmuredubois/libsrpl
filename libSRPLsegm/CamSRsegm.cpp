@@ -75,7 +75,11 @@ int CamSRsegm::LoadSegmSettings(const char* fn)
 
 		_segParaList.erase(_segParaList.begin(),_segParaList.end());
 	
-		ticpp::Element* pThd = doc.FirstChildElement("PersPass")->FirstChildElement("Segmentation")->FirstChildElement("kStd");
+		ticpp::Element* pThd = doc.FirstChildElement("libSRPL")->FirstChildElement("Segmentation")->FirstChildElement("kStd");
+		if(pThd == NULL)
+		{
+			pThd = doc.FirstChildElement("PersPass")->FirstChildElement("Segmentation")->FirstChildElement("kStd");
+		}
 		while(pThd != NULL)
 		{
 			float thresh=0;
