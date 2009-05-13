@@ -1,5 +1,5 @@
-package.name = "libSRPLcoordTrf"
-package.guid = "A203A7A9-3D46-4b46-A30A-A85B03B30DB2"
+package.name = "libSRPLransac"
+package.guid = "C8C28BD8-B75B-4151-875F-B049DCB25523"
 package.kind = "dll"
 package.language = "c++"
 
