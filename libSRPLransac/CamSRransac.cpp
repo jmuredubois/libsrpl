@@ -1,126 +1,90 @@
 /*
- * CamSRcoordTrf.cpp
- * Implementation of the coordinate transformation methods
+ * CamSRransac.cpp
+ * Implementation of the RANSAC methods
  *
  * @author: James Mure-Dubois
- * @version: 2008.11.06
+ * @version: 2009.05.13
  */
 
-#include "CamSRcoordTrf.h" //!< SR avg header file
-#include "libSRPLcoordTrf.h" //!< library header file
+#include "CamSRransac.h" //!< SR avg header file
+#include "libSRPLransac.h" //!< library header file
 
 /**
- *SR buffer coordTrf class constructor \n
+ *SR buffer ransac class constructor \n
  *  \n
  */
-CamSRcoordTrf::CamSRcoordTrf(SRBUF srBuf)
+CamSRransac::CamSRransac(SRBUF srBuf)
 {
-	_srBuf.amp = NULL; _srBuf.pha = NULL;
-	_srBuf.nCols = srBuf.nCols;
-	_srBuf.nRows = srBuf.nRows;
-	_srBuf.bufferSizeInBytes = srBuf.bufferSizeInBytes;
-	_z = NULL;
-	_y = NULL; 
-	_x = NULL; 
-	CtrBufAlloc();
+	_inBuf.fg = NULL; _inBuf.bg = NULL;
+	_inBuf.nCols = srBuf.nCols;
+	_inBuf.nRows = srBuf.nRows;
+	_inBuf.bufferSizeInBytes = srBuf.nRows*srBuf.nRows*2*sizeof(unsigned char);
+	RscBufAlloc();
 }
 
 /**
- *SR buffer coordTrf class destructor \n
+ *SR buffer ransac class destructor \n
  */
-CamSRcoordTrf::~CamSRcoordTrf()
+CamSRransac::~CamSRransac()
 {
-	CtrBufFree();
+	RscBufFree();
 }
 
 /**
- *SR coordTrf buffer allocator \n
+ *SR ransac buffer allocator \n
  * many mallocs, don't forget to free
  */
-void CamSRcoordTrf::CtrBufAlloc()
+void CamSRransac::RscBufAlloc()
 {
 	if((_srBuf.nCols<1) || (_srBuf.nRows <1)){return;};
 	unsigned int sizeBufUSh = (unsigned int) _srBuf.nCols*_srBuf.nRows*sizeof(unsigned short); // size of ushort buffer
 	unsigned int sizeBufSho = (unsigned int) _srBuf.nCols*_srBuf.nRows*sizeof(short); // size of double buffer
+	unsigned int sizeBufUCh = (unsigned int) _srBuf.nCols*_srBuf.nRows*sizeof(unsigned char); // size of uchar buffer
 
-	if(_srBuf.pha != NULL){free(_srBuf.pha);};
-	   _srBuf.pha = (unsigned short*) malloc(sizeBufUSh); memset( (void*) _srBuf.pha, 0x00, sizeBufUSh);
-	if(_srBuf.amp != NULL){free(_srBuf.amp);};
-	   _srBuf.amp = (unsigned short*) malloc(sizeBufUSh); memset( (void*) _srBuf.amp, 0x00, sizeBufUSh);
-
-	if(_z != NULL){free(_z);};
-	   _z = (unsigned short*) malloc(sizeBufUSh); memset( (void*) _z, 0x00, sizeBufUSh);
-    if(_y != NULL){free(_y);};
-	   _y = (short*) malloc(sizeBufSho); memset( (void*) _y, 0x00, sizeBufSho);
-	if(_x != NULL){free(_x);};
-	   _x = (short*) malloc(sizeBufSho); memset( (void*) _x, 0x00, sizeBufSho);
-   
+	if(_inBuf.bg != NULL){free(_inBuf.bg);};
+	_inBuf.bg = (unsigned char*) malloc(sizeBufUCh); memset( (void*) _inBuf.bg, 0x00, sizeBufUCh);
+	if(_inBuf.fg != NULL){free(_inBuf.fg);};
+	_inBuf.fg = (unsigned char*) malloc(sizeBufUCh); memset( (void*) _inBuf.fg, 0x00, sizeBufUCh);
+	_inBuf.nCols = _srBuf.nCols;
+	_inBuf.nRows = _srBuf.nRows;
+	_inBuf.bufferSizeInBytes = _srBuf.nCols*_srBuf.nRows*2*sizeof(unsigned char);
 	
 	return;
 }
 
 /**
- *SR coordTrf buffer DEallocator \n
+ *SR ransac buffer DEallocator \n
  * don't forget to free
  */
-void CamSRcoordTrf::CtrBufFree()
+void CamSRransac::RscBufFree()
 {
-	if(_srBuf.pha != NULL){free(_srBuf.pha); _srBuf.pha = NULL;};
-	if(_srBuf.amp != NULL){free(_srBuf.amp); _srBuf.amp = NULL;};
+	if(_inBuf.bg != NULL){free(_inBuf.bg); _inBuf.bg = NULL;};
+	if(_inBuf.fg != NULL){free(_inBuf.fg); _inBuf.fg = NULL;};
 
-    if(_z != NULL){free(_z); _z = NULL;};
-    if(_y != NULL){free(_y); _y = NULL;};
-	if(_x != NULL){free(_x); _x = NULL;};
+    
 	return;
 }
 
 //! Background learning initialization.
-int CamSRcoordTrf::CoordTrf(SRBUF srBuf, SRCTR pa)
+int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx)
 {
 	int res = 0;
-    if( (srBuf.nCols<1) || (srBuf.nRows<1) || (srBuf.nCols*srBuf.nRows*2*sizeof(unsigned short) != srBuf.bufferSizeInBytes) ){return -1;};
+    if( (srBuf.nCols<1) || (srBuf.nRows<1) ){return -1;};
 
-	if( (srBuf.nCols != _srBuf.nCols) || (srBuf.nRows != _srBuf.nRows) )
+	if( (srBuf.nCols != _inBuf.nCols) || (srBuf.nRows != _inBuf.nRows) )
 	{
-		_srBuf.nCols = srBuf.nCols;
-		_srBuf.nRows = srBuf.nRows;
-		_srBuf.bufferSizeInBytes = srBuf.bufferSizeInBytes;
-		CtrBufFree();
-		CtrBufAlloc();
+		_inBuf.nCols = srBuf.nCols;
+		_inBuf.nRows = srBuf.nRows;
+		_inBuf.bufferSizeInBytes = srBuf.nCols*srBuf.nRows*2*sizeof(unsigned char);
+		RscBufFree();
+		RscBufAlloc();
 	};
 
-	unsigned int sizeBufUSh = (unsigned int) _srBuf.nCols*_srBuf.nRows*sizeof(unsigned short); // size of ushort buffer
-    //memcpy(_srBuf.amp, srBuf.amp, sizeBufUSh);  //EXPENSIVE
-    //memcpy(_srBuf.pha, srBuf.pha, sizeBufUSh);
-  if((srBuf.pha != NULL) && (srBuf.amp != NULL) && (_z!=NULL) && (_y!=NULL) && (_x!=NULL) )
+  int num = srBuf.nCols*srBuf.nRows; 
+  if( (z!=NULL) && (y!=NULL) && (x!=NULL) && (isNaN!=NULL) &&  (segmMap!=NULL))
   {
-	  float xc = 0; float yc= 0; float x, y, z;
-	  for(int r = 0; r< srBuf.nRows; r++)
-	  {
-		  for(int c = 0; c< srBuf.nCols; c++)
-		  {
-			  xc = -(c -pa.cX) * pa.pixDX;
-			  yc = -(r -pa.cY) * pa.pixDY;
-
-			  z = (sqrt(
-				   (
-				     (
-					   ((float) srBuf.pha[r*srBuf.nCols+c]) / 65535.0f * pa.maxMM
-					 )
-					*(
-					   ((float) srBuf.pha[r*srBuf.nCols+c]) / 65535.0f * pa.maxMM
-					 )
-					 * ((pa.f * pa.f) / ((pa.f * pa.f) + xc*xc + yc*yc)))));
-
-			  x =(( xc * z) / pa.f);
-			  y =(( yc * z) / pa.f);
-
-			  _z[r*srBuf.nCols+c] = (unsigned short) z ;
-			  _y[r*srBuf.nCols+c] = (short) y ;
-			  _x[r*srBuf.nCols+c] = (short) x ;
-		  }
-	  }
-  }
+	  
+  } // END OF if protecting from null buffers
 
 	return res;
 }
@@ -133,38 +97,26 @@ int CamSRcoordTrf::CoordTrf(SRBUF srBuf, SRCTR pa)
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 
-SRPLCTR_API int PLCTR_Open(SRPLCTR* srplCtr, SRBUF srBuf)
+SRPLRSC_API int PLRSC_Open(SRPLRSC* srPLRSC, SRBUF srBuf)
 {
   //if(!srBuf)return -1;
-  *srplCtr= new CamSRcoordTrf(srBuf);
+  *srPLRSC= new CamSRransac(srBuf);
   return 0;
 }
-SRPLCTR_API int PLCTR_Close(SRPLCTR srplCtr)
+SRPLRSC_API int PLRSC_Close(SRPLRSC srPLRSC)
 {
-  if(!srplCtr)return -1;
-  delete(srplCtr);
+  if(!srPLRSC)return -1;
+  delete(srPLRSC);
   return 0;
 }
-SRPLCTR_API int PLCTR_CoordTrf(SRPLCTR srplCtr, SRBUF srBuf, SRCTR srCtr)
+SRPLRSC_API int PLRSC_ransac(SRPLRSC srPLRSC, SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx)
 {
-  if(!srplCtr)return -1;
-  return  srplCtr->CoordTrf(srBuf, srCtr);
+  if(!srPLRSC)return -1;
+  return  srPLRSC->ransac(srBuf, z, y, x, isNaN, segmMap, segIdx);
 }
 
-SRPLCTR_API unsigned short* PLCTR_GetZ(SRPLCTR srplCtr)
+SRPLRSC_API int PLRSC_GetIter(SRPLRSC srPLRSC)
 {
-  if(!srplCtr)return NULL;
-  return srplCtr->GetZ();
-}
-
-SRPLCTR_API short* PLCTR_GetY(SRPLCTR srplCtr)
-{
-  if(!srplCtr)return NULL;
-  return srplCtr->GetY();
-}
-
-SRPLCTR_API short* PLCTR_GetX(SRPLCTR srplCtr)
-{
-  if(!srplCtr)return NULL;
-  return  srplCtr->GetX();
+  if(!srPLRSC)return NULL;
+  return srPLRSC->GetIter();
 }

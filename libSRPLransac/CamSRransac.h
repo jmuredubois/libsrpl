@@ -1,5 +1,5 @@
 /*
- * CamSRcoordTrf.h
+ * CamSRransac.h
  * Header of the SR coordinate transformation method
  *
  * @author: James Mure-Dubois
@@ -17,41 +17,46 @@
 
 
 #include <list>		//for std::list
+#include <vector>	//for std::vector
 #include <math.h>
 #include <complex> // for ANSI C99 complex numbers; WATCH OUT, this seems to be C++'s  complex<T>
 #include "srBuf.h" // defines SRBUF
-#include "srCtrParams.h" // define SRCTR (for coordinates transform
+#include "srSegmBuf.h" // defines SRBUF
 
 /**
  * Camera average class \n
  * This class: \n
  * - averages SR buffers (s) \n
  */
-class CamSRcoordTrf //!< Camera frame class
+class CamSRransac //!< Camera frame class
 {
 public:
 	//! constructor
-    CamSRcoordTrf(SRBUF srBuf);
+    CamSRransac(SRBUF srBuf);
 	//! destructor
-	~CamSRcoordTrf();
+	~CamSRransac();
 	//! coordinate transform  method
-	int CoordTrf(SRBUF srBuf, SRCTR pa);
-	unsigned short* GetZ(){return _z;};
-	short* GetY(){return _y;};
-	short* GetX(){return _x;};
+	int ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx);
+	int GetIter(){return _nIter;};
 
 private:
 	SRBUF   _srBuf;
-	unsigned short* _z;
-	short* _y;
-	short* _x;
+	int	   _nIter;
+	float  _dist2pla; 
+	int	   _nInliers;
+	std::vector<int> _inliers;
+	SRSEGMBUF _inBuf;
+	int    _nIterMax;
+	int    _inliersStop;
+	double _nVec[4];
+
 
 #ifdef AVGTIMER
-  CPreciseTimer _ctrTimer;	//!< timer for coordTrf operation
-  float			_timeCtr_s;	//!< variable to hold coordTrf. time in seconds
+  CPreciseTimer _ctrTimer;	//!< timer for ransac operation
+  float			_timeCtr_s;	//!< variable to hold ransac. time in seconds
 #endif
 
 private:
-	void CtrBufAlloc();
-	void CtrBufFree();
+	void RscBufAlloc();
+	void RscBufFree();
 };
