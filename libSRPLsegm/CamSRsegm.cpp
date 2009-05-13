@@ -120,8 +120,6 @@ int CamSRsegm::LoadSegmSettings(const char* fn)
 			  {_segParaList.push_back(SrSegm(SrSegm::ST_KSTD, thresh, valChar));}
 			else if( strcmp(type, "iDiff") ==0)
 			  {_segParaList.push_back(SrSegm(SrSegm::ST_IDIFF, thresh, valChar));}
-			else if( strcmp(type, "kStdStop") ==0)
-			  {_segParaList.push_back(SrSegm(SrSegm::ST_KSTDSTOP, thresh, valChar));}
 			else if( strcmp(type, "surfCam") ==0)
 			  {_segParaList.push_back(SrSegm(SrSegm::ST_SURFCAM, thresh, valChar));}
 			else if( strcmp(type, "surfDiff") ==0)
