@@ -84,6 +84,31 @@ int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool
   if( (z!=NULL) && (y!=NULL) && (x!=NULL) && (isNaN!=NULL) &&  (segmMap!=NULL))
   {
 	  res+=GenPerms(isNaN, segmMap);
+	  Eigen::Matrix4d A;
+	  int pix = 0;
+	  for(int k=0; k<4; k++)
+	  {
+		  pix = _perms[k];
+		A(k,0) = (double)x[pix];
+		A(k,1) = (double)y[pix];
+		A(k,2) = (double)z[pix];
+		A(k,3) = (double)1;
+	  }
+	  Eigen::Vector4d B; B.setOnes();
+	  Eigen::Vector4d N;
+	  A.svd().solve(B,&N);
+	  //
+	  Eigen::Matrix3d AA;
+	  for(int k=0; k<3; k++)
+	  {
+		pix = _perms[k];
+		AA(k,0) = (double)x[pix];
+		AA(k,1) = (double)y[pix];
+		AA(k,2) = (double)z[pix];
+	  }
+	  Eigen::Vector3d BB; BB.setOnes();
+	  Eigen::Vector3d NN;
+	  AA.svd().solve(BB,&NN);
   } // END OF if protecting from null buffers
 
 	return res;
