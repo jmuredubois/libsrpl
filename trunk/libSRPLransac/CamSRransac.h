@@ -23,6 +23,8 @@
 #include <complex> // for ANSI C99 complex numbers; WATCH OUT, this seems to be C++'s  complex<T>
 #include "srBuf.h" // defines SRBUF
 #include "srSegmBuf.h" // defines SRBUF
+#include <Eigen/Core>
+#include <Eigen/SVD>
 
 /**
  * Camera average class \n
