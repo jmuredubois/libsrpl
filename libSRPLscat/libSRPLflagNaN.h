@@ -44,9 +44,9 @@ class CamFlagNaN;
 typedef CamFlagNaN* SRPLNAN;
 SRPLSCAT_API int PLNN_Open(SRPLNAN* srplNaN, SRBUF srBuf );
 SRPLSCAT_API int PLNN_Close(SRPLNAN srplNaN);
-SRPLSCAT_API bool* PLNN_FlagNaNbool(SRPLNAN srplNaN, SRBUF srBuf);
-SRPLSCAT_API NANBUF PLNN_FlagNaN(SRPLNAN srplNaN, SRBUF srBuf);
-//SRPLSCAT_API int PLNN_GetNaNs(SRPLNAN srplNaN, SRBUF srBuf); // NOT YET IMPLEMENTED
+SRPLSCAT_API int PLNN_FlagNaN(SRPLNAN srplNaN, SRBUF srBuf);
+SRPLSCAT_API NANBUF PLNN_GetNaNbuf(SRPLNAN srplNaN);
+SRPLSCAT_API bool* PLNN_GetBoolBuf(SRPLNAN srplNaN);
 
 #ifdef __cplusplus
 }

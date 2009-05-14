@@ -33,10 +33,9 @@ public:
 	//! destructor
 	~CamFlagNaN();
 	//! FlagNaN method
-	bool* FlagNaNbool(SRBUF nanBuf);
-	NANBUF FlagNaN(SRBUF nanBuf);
-	//bool* GetNaNs();		//!< Returns the NaN buffer (bool)
-	
+	int FlagNaN(SRBUF nanBuf);		//!< computes NaNs
+	NANBUF GetNaNbuf(){return _imgNaN;};			//!< Returns the NaN buffer (full obj wiht hRows and nCols)
+	bool* GetBoolBuf(){return _imgNaN.nanBool;};	//!< Returns the NaN buffer (bool)	
 
 private:
 	SRBUF savBuf;

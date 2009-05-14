@@ -39,19 +39,7 @@ CamFlagNaN::~CamFlagNaN()
 	\sa PL_srAcquire(), PL_srReplay()
 */
 //! This function flags invalid (NIL) points.
-bool* CamFlagNaN::FlagNaNbool(SRBUF nanBuf)
-{
-	this->FlagNaN(nanBuf);
-	return _imgNaN.nanBool;
-}
-//---------------------------------------------------
-/*!
-	FlagNaNs() flags invalid (NIL) points. \n
-	- FlagNaNs() produces boolean masks _imgNaN and _imgNaNbg . \n
-	\sa PL_srAcquire(), PL_srReplay()
-*/
-//! This function flags invalid (NIL) points.
-NANBUF CamFlagNaN::FlagNaN(SRBUF nanBuf)
+int CamFlagNaN::FlagNaN(SRBUF nanBuf)
 {
 	//! This function intends to flag invalid points.
 	//! Such points have either a null intensity value
@@ -59,6 +47,7 @@ NANBUF CamFlagNaN::FlagNaN(SRBUF nanBuf)
 	//! When segmentation methods using background are used
 	//! we must also flag points where the background image
 	//! is invalid. (fct CalcBackground() takes care of this).
+	int res=0;
 #ifdef FLAGNTIMER
 	_flagNTimer.StartTimer();
 #endif
@@ -92,7 +81,7 @@ NANBUF CamFlagNaN::FlagNaN(SRBUF nanBuf)
 	// float timeFlagN_s = (float)tic/1e6f;
 	_timeFlagN_s = (float)tic/1e6f;
 #endif
-	return _imgNaN;
+	return res;
 }
 
 SRPLSCAT_API int PLNN_Open(SRPLNAN* srplNaN, SRBUF srBuf )
@@ -107,12 +96,12 @@ SRPLSCAT_API int PLNN_Close(SRPLNAN srplNaN)
   delete(srplNaN);
   return 0;
 }
-SRPLSCAT_API bool* PLNN_FlagNaNbool(SRPLNAN srplNaN, SRBUF srBuf)
+SRPLSCAT_API int PLNN_FlagNaN(SRPLNAN srplNaN, SRBUF srBuf)
 {
-  if(!srplNaN)return NULL;
-  return srplNaN->FlagNaNbool(srBuf);
+  if(!srplNaN)return -1;
+  return srplNaN->FlagNaN(srBuf);
 }
-SRPLSCAT_API NANBUF PLNN_FlagNaN(SRPLNAN srplNaN, SRBUF srBuf)
+SRPLSCAT_API NANBUF PLNN_GetNaNbuf(SRPLNAN srplNaN)
 {
   if(!srplNaN)
   {
@@ -120,10 +109,10 @@ SRPLSCAT_API NANBUF PLNN_FlagNaN(SRPLNAN srplNaN, SRBUF srBuf)
 	  nullBuf.nCols = 0; nullBuf.nRows=0; nullBuf.bufferSizeInBytes=0;
 	  return nullBuf;
   }
-  return srplNaN->FlagNaN(srBuf);
+  return srplNaN->GetNaNbuf();
 }
-//SRPLSCAT_API int PLNN_GetNaNs(SRPLNAN srplNaN, SRBUF srBuf); // NOT YET IMPLEMENTED
-//{
-//  if(!srplNaN)return NULL;
-//  return srplNaN->GetNaNs(srBuf);
-//}
+SRPLSCAT_API bool* PLNN_GetBoolBuf(SRPLNAN srplNaN)
+{
+  if(!srplNaN)return NULL;
+  return srplNaN->GetBoolBuf();
+}
