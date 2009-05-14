@@ -83,7 +83,7 @@ int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool
   int num = srBuf.nCols*srBuf.nRows; 
   if( (z!=NULL) && (y!=NULL) && (x!=NULL) && (isNaN!=NULL) &&  (segmMap!=NULL))
   {
-	  
+	  res+=GenPerms(isNaN, segmMap);
   } // END OF if protecting from null buffers
 
 	return res;
@@ -101,7 +101,10 @@ int CamSRransac::GenPerms(bool* isNaN, unsigned char* segmMap)
 	  _perms.erase(_perms.begin(),_perms.end());
 	  std::vector<int>::iterator it;
 	  int k, N;
-	  for(int i = 0; i<num; i++)
+	  k=0;
+	  _perms.push_back(0);
+	  //_perms.insert(it+k,0); //inserting zero-th element is probably silly
+	  for(int i = 1; i<num; i++)
 	  {
 		  N=_perms.size();
 		  it=_perms.begin();
