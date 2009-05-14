@@ -23,7 +23,13 @@ tinsert(package.defines, { "_SRPL_API_DLL" } )
 
 tinsert(package.config["Release"].buildflags, {"optimize-speed"})
 
-
+-- package includes for EIGEN
+tinsert(package.includepaths,
+  {
+    string.format('%s',os.getenv("JMU_EIGEN"))
+  }
+)
+-- END OF package includes for EIGEN
 
 if (OS == "windows") then
   tinsert(package.config["Release"].defines, "NDEBUG")
