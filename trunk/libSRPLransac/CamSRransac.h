@@ -24,7 +24,13 @@
 #include "srBuf.h" // defines SRBUF
 #include "srSegmBuf.h" // defines SRBUF
 #include <Eigen/Core>
-#include <Eigen/SVD>
+#include <Eigen/SVD> // for SVD matrix decomp
+#include <Eigen/LU>	 // for LU matrix decomp
+
+typedef struct rscPlanVar{
+    std::vector<int> inliers;
+    double nVec[4];
+} RSCPLAN;
 
 /**
  * Camera average class \n
@@ -45,14 +51,19 @@ public:
 private:
 	SRBUF   _srBuf;
 	int	   _nIter;
-	float  _dist2pla; 
+	double  _dist2pla; 
 	int	   _nInliers;
-	std::vector<int> _inliers;
+	//std::vector<int> _inliers;
 	std::vector<int> _perms;
 	SRSEGMBUF _inBuf;
 	int    _nIterMax;
 	int    _inliersStop;
-	double _nVec[4];
+	//double _nVec[4];
+	double* _sqDist;
+	double* _sgDist;
+	double _avgSqDist;
+	RSCPLAN _plaCur;
+	RSCPLAN _plaBst;
 
 
 #ifdef AVGTIMER
@@ -63,6 +74,9 @@ private:
 private:
 	void RscBufAlloc();
 	void RscBufFree();
+	int RansacIter(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx);
+	int SquaredDist(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx);
+	int ResetPlane(RSCPLAN* plan);
 	int GenPerms(bool* isNaN, unsigned char* segmMap); //!< generate permutations
 	unsigned int time_seed();
 };
