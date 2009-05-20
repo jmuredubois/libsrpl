@@ -128,13 +128,13 @@ int CamSRransac::RansacIter(SRBUF srBuf, unsigned short* z, short* y, short* x, 
   int num = srBuf.nCols*srBuf.nRows; 
   res+=ResetPlane(&_plaCur); // reset current plane
 
-	  const int nSeeds=3; //9; // more than 3 would be nice but Eigen does not ssem to like that :-(
+	  const int nSeeds=9; //9; // more than 3 would be nice but Eigen does not ssem to like that :-(
 	  //res+=GenPerms(isNaN, segmMap);
 	  int seeds[nSeeds];
 	  int pix;
 	  srand ( this->time_seed() );
 	  //
-	  Eigen::Matrix<double, nSeeds, 3> A;
+	  Eigen::Matrix<double, nSeeds, 4> A;
 	  for(int k=0; k<nSeeds; k++)
 	  {
 		pix = rand() / ( RAND_MAX / num + 1 );
@@ -142,28 +142,37 @@ int CamSRransac::RansacIter(SRBUF srBuf, unsigned short* z, short* y, short* x, 
 		A(k,0) = (double)x[pix];
 		A(k,1) = (double)y[pix];
 		A(k,2) = (double)z[pix];
+		A(k,3) = 1.0;
 	  }
 	  Eigen::Matrix<double, nSeeds, 1> B; B.setOnes();
+	  Eigen::SVD<Eigen::MatrixXd> svd(A);
+	  Eigen::MatrixXd U = svd.matrixU();
+	  Eigen::MatrixXd V = svd.matrixV();
+      Eigen::VectorXd S = svd.singularValues();
 	  Eigen::Vector3d nVec3;
-	  A.svd().solve(B,&nVec3); //eigen says invalid product for SVD decomp for more than 3 pts
+	  //A.svd().solve(B,&nVec3); //eigen says invalid product for SVD decomp for more than 3 pts
 	  //if((A.lu().solve(B,&nVec3))==false){continue;}; // LU compiles but returns false for more than 3 pts
-	  double d = -1/nVec3.norm();
-	  //nVec3.normalize();
+	  for(int k=0; k<3; k++)
+	  {
+		  nVec3(k) = V(k,3);
+	  }
+	  double d = 1/nVec3.norm();
+	  nVec3.normalize();
 	  Eigen::Vector4d nVec4; nVec4.setZero();
-	  //nVec4(3)=d; _plaCur.nVec[3] = d;
-	  nVec4(3)=-1.0; _plaCur.nVec[3] = -1.0;
+	  nVec4(3)=d; _plaCur.nVec[3] = d;
+	  //nVec4(3)=-1.0; _plaCur.nVec[3] = -1.0;
 	  for(int k=0; k<3; k++)
 	  {
 		  nVec4(k) = nVec3(k);
-		  _plaCur.nVec[k] = nVec4(k);
+		  _plaCur.nVec[k] = nVec3(k);
 	  }
-	  std::cout << nVec4;
-	  nVec4.normalize();
-	  std::cout << nVec4;
+	  //std::cout << nVec4;
+	  //nVec4.normalize();
+	  //std::cout << nVec4;
 	  // prepare for squared distance computation
 	  double sqDist = 0; double dist2plaSQ = _dist2pla*_dist2pla;
 	  double den = 1/((_plaCur.nVec[0]*_plaCur.nVec[0]) + (_plaCur.nVec[1]*_plaCur.nVec[1]) + (_plaCur.nVec[2]*_plaCur.nVec[2]) );
-	  double denE = nVec4.norm();
+	  //double denE = nVec4.norm();
 	  // compute squared distance and compare to objective _dist2pla
 	  for(int i=0; i<num; i++)
 	  {
