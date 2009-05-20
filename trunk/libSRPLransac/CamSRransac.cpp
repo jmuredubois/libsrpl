@@ -137,6 +137,7 @@ int CamSRransac::RansacIter(SRBUF srBuf, unsigned short* z, short* y, short* x, 
 	  Eigen::Matrix<double, nSeeds, 4> A;
 	  for(int k=0; k<nSeeds; k++)
 	  {
+		pix = k;// DEBUG DEBUG DEBUG rand() / ( RAND_MAX / num + 1 );
 		pix = rand() / ( RAND_MAX / num + 1 );
 		seeds[k]=pix;
 		A(k,0) = (double)x[pix];
@@ -156,15 +157,15 @@ int CamSRransac::RansacIter(SRBUF srBuf, unsigned short* z, short* y, short* x, 
 	  {
 		  nVec3(k) = V(k,3);
 	  }
-	  double d = 1/nVec3.norm();
-	  nVec3.normalize();
-	  Eigen::Vector4d nVec4; nVec4.setZero();
-	  nVec4(3)=d; _plaCur.nVec[3] = d;
+	  //double d = -1/nVec3.norm();
+	  //nVec3.normalize();
+	  //Eigen::Vector4d nVec4; nVec4.setZero();
+	  //nVec4(3)=d; _plaCur.nVec[3] = d;
 	  //nVec4(3)=-1.0; _plaCur.nVec[3] = -1.0;
-	  for(int k=0; k<3; k++)
+	  for(int k=0; k<4; k++)
 	  {
-		  nVec4(k) = nVec3(k);
-		  _plaCur.nVec[k] = nVec3(k);
+		  //nVec4(k) = nVec3(k);
+		  _plaCur.nVec[k] = V(k,3)/V(3,3);
 	  }
 	  //std::cout << nVec4;
 	  //nVec4.normalize();
@@ -178,7 +179,7 @@ int CamSRransac::RansacIter(SRBUF srBuf, unsigned short* z, short* y, short* x, 
 	  {
 		sqDist =  ( (_plaCur.nVec[0]*(double)x[i])*(_plaCur.nVec[0]*(double)x[i]) +
 					(_plaCur.nVec[1]*(double)y[i])*(_plaCur.nVec[1]*(double)y[i]) +
-					(_plaCur.nVec[2]*(double)z[i])*(_plaCur.nVec[2]*(double)z[i]) +
+					(_plaCur.nVec[2]*(double)z[i])*(_plaCur.nVec[2]*(double)z[i]) -
 					(_plaCur.nVec[3]             )*(_plaCur.nVec[3]             ) ) * den;
 		/*sqDist =  ( (nVec4(0)*(double)x[i])*(nVec4(0)*(double)x[i]) +
 					(nVec4(1)*(double)y[i])*(nVec4(1)*(double)y[i]) +
