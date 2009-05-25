@@ -22,6 +22,9 @@ CamSRcoordTrf::CamSRcoordTrf(SRBUF srBuf)
 	_z = NULL;
 	_y = NULL; 
 	_x = NULL; 
+	_avgZ = 0; _minZ = 7500; _maxZ=0;
+	_avgY = 0; _minY = 0; _maxY=0;
+	_avgX = 0; _minX = 0; _maxX=0;
 	CtrBufAlloc();
 }
 
@@ -94,6 +97,9 @@ int CamSRcoordTrf::CoordTrf(SRBUF srBuf, SRCTR pa)
     //memcpy(_srBuf.pha, srBuf.pha, sizeBufUSh);
   if((srBuf.pha != NULL) && (srBuf.amp != NULL) && (_z!=NULL) && (_y!=NULL) && (_x!=NULL) )
   {
+	  _avgZ = 0; _minZ = 7500; _maxZ=0;
+	  _avgY = 0; _minY = 0; _maxY=0;
+	  _avgX = 0; _minX = 0; _maxX=0;
 	  float xc = 0; float yc= 0; float x, y, z;
 	  for(int r = 0; r< srBuf.nRows; r++)
 	  {
@@ -118,9 +124,22 @@ int CamSRcoordTrf::CoordTrf(SRBUF srBuf, SRCTR pa)
 			  _z[r*srBuf.nCols+c] = (unsigned short) z ;
 			  _y[r*srBuf.nCols+c] = (short) y ;
 			  _x[r*srBuf.nCols+c] = (short) x ;
-		  }
-	  }
-  }
+
+			  _avgZ += z;
+			  if(z>_maxZ) {_maxZ = z;};
+			  if(z<_minZ) {_minZ = z;};
+			  _avgY += y;
+			  if(y>_maxY) {_maxY = y;};
+			  if(y<_minY) {_minY = y;};
+			  _avgX += x;
+			  if(x>_maxX) {_maxX = x;};
+			  if(x<_minX) {_minX = x;};
+		  } // for loop on columns (c)
+	  } // for loop on rows (r)
+	  _avgZ = _avgZ / ( (float) (srBuf.nCols * srBuf.nRows) );
+	  _avgY = _avgY / ( (float) (srBuf.nCols * srBuf.nRows) );
+	  _avgX = _avgX / ( (float) (srBuf.nCols * srBuf.nRows) );
+  } // if buffers aren't NULL
 
 	return res;
 }
@@ -167,4 +186,50 @@ SRPLCTR_API short* PLCTR_GetX(SRPLCTR srplCtr)
 {
   if(!srplCtr)return NULL;
   return  srplCtr->GetX();
+}
+
+SRPLCTR_API float PLCTR_GetAvgZ(SRPLCTR srplCtr)
+{
+  if(!srplCtr)return -1;
+  return srplCtr->GetAvgZ();
+}
+SRPLCTR_API float PLCTR_GetAvgY(SRPLCTR srplCtr)
+{
+  if(!srplCtr)return -1;
+  return srplCtr->GetAvgY();
+}
+SRPLCTR_API float PLCTR_GetAvgX(SRPLCTR srplCtr)
+{
+  if(!srplCtr)return -1;
+  return srplCtr->GetAvgX();
+}
+SRPLCTR_API float PLCTR_GetMinZ(SRPLCTR srplCtr)
+{
+  if(!srplCtr)return -1;
+  return srplCtr->GetMinZ();
+}
+SRPLCTR_API float PLCTR_GetMinY(SRPLCTR srplCtr)
+{
+  if(!srplCtr)return -1;
+  return srplCtr->GetMinY();
+}
+SRPLCTR_API float PLCTR_GetMinX(SRPLCTR srplCtr)
+{
+  if(!srplCtr)return -1;
+  return srplCtr->GetMinX();
+}
+SRPLCTR_API float PLCTR_GetMaxZ(SRPLCTR srplCtr)
+{
+  if(!srplCtr)return -1;
+  return srplCtr->GetMaxZ();
+}
+SRPLCTR_API float PLCTR_GetMaxY(SRPLCTR srplCtr)
+{
+  if(!srplCtr)return -1;
+  return srplCtr->GetMaxY();
+}
+SRPLCTR_API float PLCTR_GetMaxX(SRPLCTR srplCtr)
+{
+  if(!srplCtr)return -1;
+  return srplCtr->GetMaxX();
 }

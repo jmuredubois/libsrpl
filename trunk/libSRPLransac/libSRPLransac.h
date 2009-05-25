@@ -30,15 +30,16 @@ extern "C" {
 
 #include "srBuf.h" // defines SRBUF
 #include "srSegmBuf.h" // defines SRSEGMBUF
+#include "srRscPlan.h" // defines SRSEGMBUF
 
 class CamSRransac;
 typedef CamSRransac* SRPLRSC;
 SRPLRSC_API int PLRSC_Open(SRPLRSC* srPLRSC, SRBUF srBuf );
 SRPLRSC_API int PLRSC_Close(SRPLRSC srPLRSC);
 SRPLRSC_API int PLRSC_ransac(SRPLRSC srPLRSC, SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx);
-SRPLRSC_API unsigned short* PLRSC_GetZ(SRPLRSC srPLRSC);
-SRPLRSC_API short* PLRSC_GetY(SRPLRSC srPLRSC);
-SRPLRSC_API short* PLRSC_GetX(SRPLRSC srPLRSC);
+SRPLRSC_API int PLRSC_GetIter(SRPLRSC srPLRSC);
+SRPLRSC_API RSCPLAN PLRSC_GetPlaBest(SRPLRSC srPLRSC);
+SRPLRSC_API RSCPLAN PLRSC_GetPlaCurr(SRPLRSC srPLRSC);
 
 #ifdef __cplusplus
 }

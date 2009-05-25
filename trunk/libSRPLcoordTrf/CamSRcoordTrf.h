@@ -39,12 +39,23 @@ public:
 	unsigned short* GetZ(){return _z;};
 	short* GetY(){return _y;};
 	short* GetX(){return _x;};
+	float GetAvgZ(){return _avgZ;};
+	float GetAvgY(){return _avgY;};
+	float GetAvgX(){return _avgX;};
+	float GetMinZ(){return _minZ;};
+	float GetMinY(){return _minY;};
+	float GetMinX(){return _minX;};
+	float GetMaxZ(){return _maxZ;};
+	float GetMaxY(){return _maxY;};
+	float GetMaxX(){return _maxX;};
 
 private:
 	SRBUF   _srBuf;
 	unsigned short* _z;
 	short* _y;
 	short* _x;
+	float _avgX, _minX, _maxX, _avgY, _minY, _maxY;
+	float _avgZ, _minZ, _maxZ ;
 
 #ifdef AVGTIMER
   CPreciseTimer _ctrTimer;	//!< timer for coordTrf operation

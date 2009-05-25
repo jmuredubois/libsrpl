@@ -289,3 +289,24 @@ SRPLRSC_API int PLRSC_GetIter(SRPLRSC srPLRSC)
   if(!srPLRSC)return NULL;
   return srPLRSC->GetIter();
 }
+
+SRPLRSC_API RSCPLAN PLRSC_GetPlaBest(SRPLRSC srPLRSC)
+{
+  if(!srPLRSC)
+  {
+	RSCPLAN plan0;
+	for(int i=0; i<4; i++) {plan0.nVec[i]=0.0;} ;
+	return plan0;
+  }
+  return srPLRSC->GetPlaBest();
+}
+SRPLRSC_API RSCPLAN PLRSC_GetPlaCurr(SRPLRSC srPLRSC)
+{
+  if(!srPLRSC)
+  {
+	RSCPLAN plan0;
+	for(int i=0; i<4; i++) {plan0.nVec[i]=0.0;} ;
+	return plan0;
+  }
+  return srPLRSC->GetPlaCurr();
+}
