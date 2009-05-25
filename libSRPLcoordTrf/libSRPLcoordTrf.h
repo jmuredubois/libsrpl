@@ -40,6 +40,15 @@ SRPLCTR_API unsigned short* PLCTR_GetZ(SRPLCTR srplCtr);
 SRPLCTR_API short* PLCTR_GetY(SRPLCTR srplCtr);
 SRPLCTR_API short* PLCTR_GetX(SRPLCTR srplCtr);
 
+SRPLCTR_API float PLCTR_GetAvgZ(SRPLCTR srplCtr);
+SRPLCTR_API float PLCTR_GetAvgY(SRPLCTR srplCtr);
+SRPLCTR_API float PLCTR_GetAvgX(SRPLCTR srplCtr);
+SRPLCTR_API float PLCTR_GetMinZ(SRPLCTR srplCtr);
+SRPLCTR_API float PLCTR_GetMinY(SRPLCTR srplCtr);
+SRPLCTR_API float PLCTR_GetMinX(SRPLCTR srplCtr);
+SRPLCTR_API float PLCTR_GetMaxZ(SRPLCTR srplCtr);
+SRPLCTR_API float PLCTR_GetMaxY(SRPLCTR srplCtr);
+SRPLCTR_API float PLCTR_GetMaxX(SRPLCTR srplCtr);
 #ifdef __cplusplus
 }
 #endif

@@ -23,14 +23,11 @@
 #include <complex> // for ANSI C99 complex numbers; WATCH OUT, this seems to be C++'s  complex<T>
 #include "srBuf.h" // defines SRBUF
 #include "srSegmBuf.h" // defines SRBUF
+#include "srRscPlan.h" // defines SRBUF
 #include <Eigen/Core>
 #include <Eigen/SVD> // for SVD matrix decomp
 #include <Eigen/LU>	 // for LU matrix decomp
 
-typedef struct rscPlanVar{
-    std::vector<int> inliers;
-    double nVec[4];
-} RSCPLAN;
 
 /**
  * Camera average class \n
@@ -47,6 +44,8 @@ public:
 	//! coordinate transform  method
 	int ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx);
 	int GetIter(){return _nIter;};
+	RSCPLAN GetPlaBest(){return _plaBst;};
+	RSCPLAN GetPlaCurr(){return _plaCur;};
 
 private:
 	SRBUF   _srBuf;
