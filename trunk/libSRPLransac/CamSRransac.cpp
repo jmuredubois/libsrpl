@@ -114,6 +114,7 @@ int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool
 			  res+=ResetPlane(&_plaBst); // reset best plane
 			  memcpy( (void*) &(_plaBst.nVec), (const void*) &(_plaCur.nVec), 4*sizeof(double));
 			  _plaBst.inliers = _plaCur.inliers; // HOPEFULLY, STD::VECTOR DOES DEEP COPY
+			  _plaBst.iter = it;
 		  }
 		}
 	  }
@@ -204,7 +205,7 @@ int CamSRransac::SquaredDist(SRBUF srBuf, unsigned short* z, short* y, short* x,
   {
 	  _sqDist[i] =  ( (_plaCur.nVec[0]*(double)x[i])*(_plaCur.nVec[0]*(double)x[i]) +
 					  (_plaCur.nVec[1]*(double)y[i])*(_plaCur.nVec[1]*(double)y[i]) +
-					  (_plaCur.nVec[2]*(double)z[i])*(_plaCur.nVec[2]*(double)z[i]) +
+					  (_plaCur.nVec[2]*(double)z[i])*(_plaCur.nVec[2]*(double)z[i]) -
 					  ((_plaCur.nVec[3]            )*(_plaCur.nVec[3])            ) ) * den;
   }
 
@@ -217,6 +218,7 @@ int CamSRransac::ResetPlane(RSCPLAN* plan)
 	int res=0;
 	memset( (void*) &(plan->nVec), 0x0, 4*sizeof(double) );
 	plan->inliers.erase(plan->inliers.begin(), plan->inliers.end());
+	plan->iter = -1;
 	return res;
 }
 
@@ -258,7 +260,18 @@ unsigned int CamSRransac::time_seed()
     seed = seed * ( UCHAR_MAX + 2U ) + p[i];
   return seed;
 }
- 
+
+//! Sets a maximum number of iterations (HARDCODED max at 100000)
+int CamSRransac::SetIterMax(int iterMax)
+{
+	int res=-1;
+	if((iterMax > 0) && (iterMax < 100001))
+	{
+		_nIterMax = iterMax;
+		res = _nIterMax;
+	}
+	return res;
+}
 
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
@@ -283,13 +296,21 @@ SRPLRSC_API int PLRSC_ransac(SRPLRSC srPLRSC, SRBUF srBuf, unsigned short* z, sh
   if(!srPLRSC)return -1;
   return  srPLRSC->ransac(srBuf, z, y, x, isNaN, segmMap, segIdx);
 }
-
 SRPLRSC_API int PLRSC_GetIter(SRPLRSC srPLRSC)
 {
-  if(!srPLRSC)return NULL;
+  if(!srPLRSC)return -1;
   return srPLRSC->GetIter();
 }
-
+SRPLRSC_API int PLRSC_GetIterMax(SRPLRSC srPLRSC)
+{
+  if(!srPLRSC)return -1;
+  return srPLRSC->GetIterMax();
+}
+SRPLRSC_API int PLRSC_SetIterMax(SRPLRSC srPLRSC, int iterMax)
+{
+  if(!srPLRSC)return -1;
+  return srPLRSC->SetIterMax(iterMax);
+}
 SRPLRSC_API RSCPLAN PLRSC_GetPlaBest(SRPLRSC srPLRSC)
 {
   if(!srPLRSC)
