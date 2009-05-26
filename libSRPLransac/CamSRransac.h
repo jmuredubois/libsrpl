@@ -44,6 +44,8 @@ public:
 	//! coordinate transform  method
 	int ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx);
 	int GetIter(){return _nIter;};
+	int GetIterMax(){return _nIterMax;};
+	int SetIterMax(int iterMax);
 	RSCPLAN GetPlaBest(){return _plaBst;};
 	RSCPLAN GetPlaCurr(){return _plaCur;};
 
