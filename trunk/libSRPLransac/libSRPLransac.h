@@ -24,9 +24,9 @@
     #define SRPLRSC_LOC
   #endif
 #endif
-#ifdef __cplusplus
-extern "C" {
-#endif
+//#ifdef __cplusplus
+//extern "C" {
+//#endif
 
 #include "srBuf.h" // defines SRBUF
 #include "srSegmBuf.h" // defines SRSEGMBUF
@@ -43,6 +43,6 @@ SRPLRSC_API int PLRSC_SetIterMax(SRPLRSC srPLRSC, int iterMax);
 SRPLRSC_API RSCPLAN PLRSC_GetPlaBest(SRPLRSC srPLRSC);
 SRPLRSC_API RSCPLAN PLRSC_GetPlaCurr(SRPLRSC srPLRSC);
 
-#ifdef __cplusplus
-}
-#endif
+//#ifdef __cplusplus
+//}
+//#endif
