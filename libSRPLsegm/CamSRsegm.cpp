@@ -168,8 +168,8 @@ int CamSRsegm::Segment(SRBUF srBuf, NANBUF nanBuf, SRBUF srBG, NANBUF nanBG, SRV
 	int num=srBuf.nCols*srBuf.nRows; // Get dimension of SR image
 	unsigned short* phaSR = srBuf.pha; // Get SR current amplitude image
 	unsigned short* ampSR = srBuf.amp; // Get SR current amplitude image
-	bool* imgNaN = nanBuf.nanBool;
-	bool* imgNaNbg = nanBG.nanBool;
+	bool* imgNaN = nanBuf.nanBool;  if(!imgNaN){return -2;};
+	bool* imgNaNbg = nanBG.nanBool; if(!imgNaNbg){return -3;};
 	unsigned short* ampBG = srBG.amp; // Get SR BG amplitude image
 	unsigned short* phaBG = srBG.pha; // Get SR BG amplitude image
 // BAYESIAN ONLY SEGMENTATION
