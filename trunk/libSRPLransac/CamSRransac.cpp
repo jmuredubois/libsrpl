@@ -104,7 +104,7 @@ int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool
 		// TODO:  add for loop on number of iterations
 		// TODO: check if mutex is necessary to prevent buffers from being cleared while ransac is running
 		res+=RansacIter(srBuf, z, y, x, isNaN, segmMap, segIdx);
-	  	if(_plaCur.inliers.size() > num /10) // if 10% of points are in consensus set
+	  	if((int)_plaCur.inliers.size() > num /10) // if 10% of points are in consensus set
 		{
 		  float perc = ((float) _plaCur.inliers.size()) / (float)num;
 		  float percB= ((float) _plaBst.inliers.size()) / (float)num;
@@ -239,7 +239,7 @@ int CamSRransac::GenPerms(bool* isNaN, unsigned char* segmMap)
 	  //_perms.insert(it+k,0); //inserting zero-th element is probably silly
 	  for(int i = 1; i<num; i++)
 	  {
-		  N=_perms.size();
+		  N=(int)_perms.size();
 		  it=_perms.begin();
 		  k = rand() / ( RAND_MAX / N + 1 );
 		  _perms.insert(it+k,i);
