@@ -1,7 +1,7 @@
 --*	NOTES:
 --*		- use the '/' slash for all paths.
 --*****************************************************************************
-solution "libSRPLavg4"
+solution "libSRPLavg"
 	configurations { "Debug", "Release" }
 
 -- This is for including other Premake scripts.
