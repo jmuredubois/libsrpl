@@ -361,7 +361,8 @@ int CamSRsegm::SegmentXYZ(SRBUF srBuf, NANBUF nanBuf, SRBUF srBG, NANBUF nanBG, 
       {
         unsigned short bin,val;
         float surf=0.f;
-        for(bin=0;bin<_countof(_histS_c);bin++)		// go through surfCam histogram
+        //for(bin=0;bin<_countof(_histS_c);bin++)		// go through surfCam histogram
+        for(bin=0;bin<256;bin++)		// go through surfCam histogram
         {
           surf+=_histS_c[bin];	// accumulate surface
           if(surf>=thd._thresh)	// until threshold (m^2) is reached
@@ -384,7 +385,8 @@ int CamSRsegm::SegmentXYZ(SRBUF srBuf, NANBUF nanBuf, SRBUF srBG, NANBUF nanBG, 
       {
         unsigned short bin,val;
         float surf=0.f;
-        for(bin=0;bin<_countof(_histS_d);bin++)	// go through surfDiff histogram
+        //for(bin=0;bin<_countof(_histS_d);bin++)	// go through surfDiff histogram
+        for(bin=0;bin<256;bin++)	// go through surfDiff histogram
         {
           surf+=_histS_d[bin];		// accumulate surface
           if(surf>=thd._thresh)		// until threshold (m^2) is reached
