@@ -1,7 +1,7 @@
 -- Set package name.
-project "libSRPLavg4"
+project "libSRPLavg"
 	-- if you want a different name for your target than the projects's name.
-	outName						= "libSRPLavg4"
+	outName						= "libSRPLavg"
 	uuid						"17F81D4D-B123-451e-A3B1-733DC3A9FB72"
 	-- Set the files to include/exclude.
 	files						{ "*.cpp", "*.h" }
