@@ -28,7 +28,7 @@
 #include <list>		//for std::list
 #include <math.h>
 #include <complex> // for ANSI C99 complex numbers; WATCH OUT, this seems to be C++'s  complex<T>
-#include <fftw3.h>		//!< FFTW used
+#include "fftw3.h"		//!< FFTW used
 #pragma comment(lib, "libfftw3-3")
 #include "srBuf.h"
 
