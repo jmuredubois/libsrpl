@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fftw3.h>  // included for type fftw_complex
+#include "fftw3.h"  // included for type fftw_complex
 #include <math.h>	// included for type complex
 #include <complex>	// included for type complex
 
