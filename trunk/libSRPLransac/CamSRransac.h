@@ -27,6 +27,7 @@
 #include <Eigen/Core>
 #include <Eigen/SVD> // for SVD matrix decomp
 #include <Eigen/LU>	 // for LU matrix decomp
+#include <Eigen/Geometry>	 // for geometry transf (quaternions, etc)
 
 
 /**
@@ -47,7 +48,8 @@ public:
 	int GetIterMax(){return _nIterMax;};
 	int SetIterMax(int iterMax);
 	double  GetDistPla(){return _dist2pla;}; //!< threshold for distance to plane in mm
-	double  SetDistPla(double distPla);			//
+	double  SetDistPla(double distPla);	
+	double GetProjZRotMat(double mat[9]);//
 	RSCPLAN GetPlaBest(){return _plaBst;};
 	RSCPLAN GetPlaCurr(){return _plaCur;};
 
@@ -78,7 +80,7 @@ private:
 	void RscBufAlloc();
 	void RscBufFree();
 	int RansacIter(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx);
-	int SquaredDist(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx);
+	int SetDists(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx);
 	int ResetPlane(RSCPLAN* plan);
 	int GenPerms(bool* isNaN, unsigned char* segmMap); //!< generate permutations
 	unsigned int time_seed();
