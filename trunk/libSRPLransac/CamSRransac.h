@@ -62,7 +62,7 @@ private:
 	int    _nIterMax;
 	int    _inliersStop;
 	//double _nVec[4];
-	double* _sqDist;
+	double* _poDist;
 	double* _sgDist;
 	double _avgSqDist;
 	RSCPLAN _plaCur;

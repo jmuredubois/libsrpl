@@ -24,7 +24,7 @@ CamSRransac::CamSRransac(SRBUF srBuf)
 	_nIterMax = 2800;
 	_nIter = 0;
 	_inliersStop=num-100;
-	_sqDist = NULL;
+	_poDist = NULL;
 	_sgDist = NULL;
 	_dist2pla = 300; // HARDCODED for now
 	RscBufAlloc(); // SHOULD ALWAYS BE LAST
@@ -58,8 +58,8 @@ void CamSRransac::RscBufAlloc()
 	_inBuf.nCols = _srBuf.nCols;
 	_inBuf.nRows = _srBuf.nRows;
 	_inBuf.bufferSizeInBytes = _srBuf.nCols*_srBuf.nRows*2*sizeof(unsigned char);
-	if(_sqDist != NULL){free(_sqDist);};
-		_sqDist = (double*) malloc(sizeBufDbl);memset(_sqDist, 0x00, sizeBufDbl);
+	if(_poDist != NULL){free(_poDist);};
+		_poDist = (double*) malloc(sizeBufDbl);memset(_poDist, 0x00, sizeBufDbl);
 	if(_sgDist != NULL){free(_sgDist);};
 		_sgDist = (double*) malloc(sizeBufDbl);memset(_sgDist, 0x00, sizeBufDbl);
 	
@@ -74,7 +74,7 @@ void CamSRransac::RscBufFree()
 {
 	if(_inBuf.bg != NULL){free(_inBuf.bg); _inBuf.bg = NULL;};
 	if(_inBuf.fg != NULL){free(_inBuf.fg); _inBuf.fg = NULL;};
-	if(_sqDist != NULL){free(_sqDist); _sqDist = NULL;};
+	if(_poDist != NULL){free(_poDist); _poDist = NULL;};
 	if(_sgDist != NULL){free(_sgDist); _sgDist = NULL;};
     
 	return;
@@ -133,7 +133,7 @@ int CamSRransac::RansacIter(SRBUF srBuf, unsigned short* z, short* y, short* x, 
 	  //res+=GenPerms(isNaN, segmMap);
 	  int seeds[nSeeds];
 	  int pix;
-	  srand ( this->time_seed() );
+	  //srand ( this->time_seed() ); // avoid seedign at each iter
 	  //
 	  Eigen::Matrix<double, nSeeds, 4> A;
 	  for(int k=0; k<nSeeds; k++)
@@ -146,57 +146,42 @@ int CamSRransac::RansacIter(SRBUF srBuf, unsigned short* z, short* y, short* x, 
 		A(k,2) = (double)z[pix];
 		A(k,3) = 1.0;
 	  }
-	  Eigen::Matrix<double, nSeeds, 1> B; B.setOnes();
 	  Eigen::SVD<Eigen::MatrixXd> svd(A);
-	  Eigen::MatrixXd U = svd.matrixU();
+	  //Eigen::MatrixXd U = svd.matrixU();
 	  Eigen::MatrixXd V = svd.matrixV();
-      Eigen::VectorXd S = svd.singularValues();
+      //Eigen::VectorXd S = svd.singularValues();
 	  Eigen::Vector3d nVec3;
-	  //A.svd().solve(B,&nVec3); //eigen says invalid product for SVD decomp for more than 3 pts
-	  //if((A.lu().solve(B,&nVec3))==false){continue;}; // LU compiles but returns false for more than 3 pts
 	  for(int k=0; k<3; k++)
 	  {
-		  nVec3(k) = V(k,3);
+		  nVec3(k) = V(k,3); // last column of V (corresponding to smallest S) is singular vect
 	  }
-	  //double d = -1/nVec3.norm();
-	  //nVec3.normalize();
-	  //Eigen::Vector4d nVec4; nVec4.setZero();
-	  //nVec4(3)=d; _plaCur.nVec[3] = d;
-	  //nVec4(3)=-1.0; _plaCur.nVec[3] = -1.0;
-	  for(int k=0; k<4; k++)
+	  double d = 1/nVec3.norm();
+	  nVec3.normalize();
+	  Eigen::Vector4d nVec4; nVec4.setZero();
+	  nVec4(3)=d; _plaCur.nVec[3] = d;
+	  for(int k=0; k<3; k++)
 	  {
-		  //nVec4(k) = nVec3(k);
-		  _plaCur.nVec[k] = V(k,3)/V(3,3);
+		  nVec4(k) = nVec3(k);
+		  _plaCur.nVec[k] = nVec3(k);
 	  }
 	  //std::cout << nVec4;
 	  //nVec4.normalize();
-	  //std::cout << nVec4;
-	  // prepare for squared distance computation
-	  double sqDist = 0; double dist2plaSQ = _dist2pla*_dist2pla;
-	  double sqDistN = 0;
-	  double den = 1/((_plaCur.nVec[0]*_plaCur.nVec[0]) + (_plaCur.nVec[1]*_plaCur.nVec[1]) + (_plaCur.nVec[2]*_plaCur.nVec[2]) );
-	  //double denE = nVec4.norm();
-	  // compute squared distance and compare to objective _dist2pla
+	  // prepare for distance computation
+	  double poDist = 0;
+	  double den = 1/sqrt((_plaCur.nVec[0]*_plaCur.nVec[0]) + (_plaCur.nVec[1]*_plaCur.nVec[1]) + (_plaCur.nVec[2]*_plaCur.nVec[2]) );
+	  // compute distance and compare to objective _dist2pla
 	  for(int i=0; i<num; i++)
 	  {
-		sqDist =  ( (_plaCur.nVec[0]*(double)x[i])*(_plaCur.nVec[0]*(double)x[i]) +
-					(_plaCur.nVec[1]*(double)y[i])*(_plaCur.nVec[1]*(double)y[i]) +
-					(_plaCur.nVec[2]*(double)z[i])*(_plaCur.nVec[2]*(double)z[i]) -
-					(_plaCur.nVec[3]             )*(_plaCur.nVec[3]             ) ) * den;
-		/*sqDist =  ( (nVec4(0)*(double)x[i])*(nVec4(0)*(double)x[i]) +
-					(nVec4(1)*(double)y[i])*(nVec4(1)*(double)y[i]) +
-					(nVec4(2)*(double)z[i])*(nVec4(2)*(double)z[i]) +
-					(nVec4(3)             )*(nVec4(3)             ) ) * denE;*/
-		_sqDist[i] = sqDist;
-		if(sqDist <0.0)
+		  poDist = abs(  (_plaCur.nVec[0]*(double)x[i]) +
+					     (_plaCur.nVec[1]*(double)y[i]) +
+					     (_plaCur.nVec[2]*(double)z[i]) +
+					     (_plaCur.nVec[3]             ) ) * den;
+		_poDist[i] = poDist;
+		if(poDist <0.0)
 		{ // something is awfully wrong in hotfix for ML compatibility since it generates negative square distances
-			sqDistN =  ( (_plaCur.nVec[0]*(double)x[i])*(_plaCur.nVec[0]*(double)x[i]) +
-					(_plaCur.nVec[1]*(double)y[i])*(_plaCur.nVec[1]*(double)y[i]) +
-					(_plaCur.nVec[2]*(double)z[i])*(_plaCur.nVec[2]*(double)z[i]) +
-					(_plaCur.nVec[3]             )*(_plaCur.nVec[3]             ) ) * den;
-			
+			std::cout << poDist;
 		}
-		if( (isNaN[i]==0) && (segmMap[i]==segIdx) && (sqDist < dist2plaSQ) && (sqDist >= 0.0))
+		if( (isNaN[i]==0) && (segmMap[i]==segIdx) && (poDist < _dist2pla) && (poDist >= 0.0))
 		{
 			_plaCur.inliers.push_back(i); // add pixel to inliers
 		}
@@ -212,7 +197,7 @@ int CamSRransac::SquaredDist(SRBUF srBuf, unsigned short* z, short* y, short* x,
   double den = 1/((_plaCur.nVec[0]*_plaCur.nVec[0]) + (_plaCur.nVec[1]*_plaCur.nVec[1]) + (_plaCur.nVec[2]*_plaCur.nVec[2]) );
   for(int i=0; i<num; i++)
   {
-	  _sqDist[i] =  ( (_plaCur.nVec[0]*(double)x[i])*(_plaCur.nVec[0]*(double)x[i]) +
+	  _poDist[i] =  ( (_plaCur.nVec[0]*(double)x[i])*(_plaCur.nVec[0]*(double)x[i]) +
 					  (_plaCur.nVec[1]*(double)y[i])*(_plaCur.nVec[1]*(double)y[i]) +
 					  (_plaCur.nVec[2]*(double)z[i])*(_plaCur.nVec[2]*(double)z[i]) -
 					  ((_plaCur.nVec[3]            )*(_plaCur.nVec[3])            ) ) * den;
