@@ -189,18 +189,21 @@ int CamSRransac::RansacIter(SRBUF srBuf, unsigned short* z, short* y, short* x, 
 	  _nIter+=1;
 	return res;
 }
-//! Compute squared distances.
-int CamSRransac::SquaredDist(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx)
+//! Compute distances.
+int CamSRransac::SetDists(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx)
 {
   int res = 0;
   int num = srBuf.nCols*srBuf.nRows;
+  double sgDist;
   double den = 1/((_plaCur.nVec[0]*_plaCur.nVec[0]) + (_plaCur.nVec[1]*_plaCur.nVec[1]) + (_plaCur.nVec[2]*_plaCur.nVec[2]) );
   for(int i=0; i<num; i++)
   {
-	  _poDist[i] =  ( (_plaCur.nVec[0]*(double)x[i])*(_plaCur.nVec[0]*(double)x[i]) +
-					  (_plaCur.nVec[1]*(double)y[i])*(_plaCur.nVec[1]*(double)y[i]) +
-					  (_plaCur.nVec[2]*(double)z[i])*(_plaCur.nVec[2]*(double)z[i]) -
-					  ((_plaCur.nVec[3]            )*(_plaCur.nVec[3])            ) ) * den;
+	  sgDist =     abs(  (_plaCur.nVec[0]*(double)x[i]) +
+					     (_plaCur.nVec[1]*(double)y[i]) +
+					     (_plaCur.nVec[2]*(double)z[i]) +
+					     (_plaCur.nVec[3]             ) ) * den;
+	 _poDist[i] = abs(sgDist);
+	 _sgDist[i] = abs(sgDist);
   }
 
 	return res;
@@ -277,6 +280,43 @@ double CamSRransac::SetDistPla(double distPla)
 	return _dist2pla;
 }
 
+//! Returns the matrix to rotate best plan axis on Z axis
+double CamSRransac::GetProjZRotMat(double mat[9])
+{
+	// in ML, see trunk/srMatlab/utils/rotateSRPtsArbitrary.m
+/* nVec = nVec / norm(nVec);
+a = nVec(1); b = nVec(2); c = nVec(3) ;
+Rx = [ 1 0 0 0; 0 (c / sqrt(b*b + c*c)) -(b / sqrt(b*b + c*c)) 0; 0 (b / sqrt(b*b + c*c)) (c / sqrt(b*b + c*c)) 0; 0 0 0 1];
+v2 = Rx*[nVec;1];
+Ry = [sqrt(b*b +c*c) 0 -a 0 ; 0 1 0 0; a 0 sqrt(b*b +c*c) 0; 0 0 0 1];
+v3 = Ry*[v2];
+
+clear a ans b c nVec v2 v3
+% clear a ans b c nVec ptsZ v2 v3 Rx Ry
+rotMat = Ry*Rx;
+
+if exist('selXYZ')
+    rotMat = Rlast*rotMat;
+end
+*/
+	// http://eigen.tuxfamily.org/dox/classEigen_1_1Quaternion.html#2e6246f7bf5ec16f738889a4f3e9c3b9
+	Eigen::Vector3d nVec3;
+	Eigen::Vector3d nVecZ; nVecZ.setZero(); nVecZ(2) = 1.0;
+	for(int k=0; k<3; k++)
+	{
+		  nVec3(k) = _plaBst.nVec[k];
+	}
+	Eigen::Quaterniond qz;
+	qz.setFromTwoVectors(nVec3, nVecZ);
+	Eigen::Matrix3d matE = qz.toRotationMatrix();
+	for(int k=0; k<9; k++)
+	{
+		mat[k] = matE(k);
+	}
+
+	return 0;
+}
+
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 /////////////////////// API FUNCTIONS //////////////////////////
@@ -345,3 +385,10 @@ SRPLRSC_API double PLRSC_SetDistPla(SRPLRSC srPLRSC, double distPla)
   if(!srPLRSC)return -1;
   return srPLRSC->SetDistPla(distPla);
 }
+
+SRPLRSC_API double PLRSC_GetProjZRotMat(SRPLRSC srPLRSC, double mat[9])
+{
+	if(!srPLRSC)return -1.0;
+	return srPLRSC->GetProjZRotMat(mat);
+}
+
