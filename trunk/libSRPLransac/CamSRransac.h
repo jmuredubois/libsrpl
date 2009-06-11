@@ -46,6 +46,8 @@ public:
 	int GetIter(){return _nIter;};
 	int GetIterMax(){return _nIterMax;};
 	int SetIterMax(int iterMax);
+	double  GetDistPla(){return _dist2pla;}; //!< threshold for distance to plane in mm
+	double  SetDistPla(double distPla);			//
 	RSCPLAN GetPlaBest(){return _plaBst;};
 	RSCPLAN GetPlaCurr(){return _plaCur;};
 
