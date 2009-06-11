@@ -173,6 +173,7 @@ int CamSRransac::RansacIter(SRBUF srBuf, unsigned short* z, short* y, short* x, 
 	  //std::cout << nVec4;
 	  // prepare for squared distance computation
 	  double sqDist = 0; double dist2plaSQ = _dist2pla*_dist2pla;
+	  double sqDistN = 0;
 	  double den = 1/((_plaCur.nVec[0]*_plaCur.nVec[0]) + (_plaCur.nVec[1]*_plaCur.nVec[1]) + (_plaCur.nVec[2]*_plaCur.nVec[2]) );
 	  //double denE = nVec4.norm();
 	  // compute squared distance and compare to objective _dist2pla
@@ -187,7 +188,15 @@ int CamSRransac::RansacIter(SRBUF srBuf, unsigned short* z, short* y, short* x, 
 					(nVec4(2)*(double)z[i])*(nVec4(2)*(double)z[i]) +
 					(nVec4(3)             )*(nVec4(3)             ) ) * denE;*/
 		_sqDist[i] = sqDist;
-		if( (isNaN[i]==0) && (segmMap[i]==0) && (sqDist < dist2plaSQ) )
+		if(sqDist <0.0)
+		{ // something is awfully wrong in hotfix for ML compatibility since it generates negative square distances
+			sqDistN =  ( (_plaCur.nVec[0]*(double)x[i])*(_plaCur.nVec[0]*(double)x[i]) +
+					(_plaCur.nVec[1]*(double)y[i])*(_plaCur.nVec[1]*(double)y[i]) +
+					(_plaCur.nVec[2]*(double)z[i])*(_plaCur.nVec[2]*(double)z[i]) +
+					(_plaCur.nVec[3]             )*(_plaCur.nVec[3]             ) ) * den;
+			
+		}
+		if( (isNaN[i]==0) && (segmMap[i]==segIdx) && (sqDist < dist2plaSQ) && (sqDist >= 0.0))
 		{
 			_plaCur.inliers.push_back(i); // add pixel to inliers
 		}
@@ -273,6 +282,16 @@ int CamSRransac::SetIterMax(int iterMax)
 	return res;
 }
 
+//! Sets the maximum inliers distance (mm)
+double CamSRransac::SetDistPla(double distPla)
+{
+	if(distPla > 0)
+	{
+		_dist2pla = distPla;
+	}
+	return _dist2pla;
+}
+
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 /////////////////////// API FUNCTIONS //////////////////////////
@@ -330,4 +349,14 @@ SRPLRSC_API RSCPLAN PLRSC_GetPlaCurr(SRPLRSC srPLRSC)
 	return plan0;
   }
   return srPLRSC->GetPlaCurr();
+}
+SRPLRSC_API double PLRSC_GetDispPla(SRPLRSC srPLRSC)
+{
+  if(!srPLRSC)return -1;
+  return srPLRSC->GetDistPla();
+}
+SRPLRSC_API double PLRSC_SetDistPla(SRPLRSC srPLRSC, double distPla)
+{
+  if(!srPLRSC)return -1;
+  return srPLRSC->SetDistPla(distPla);
 }
