@@ -79,9 +79,8 @@ void CamSRransac::RscBufFree()
     
 	return;
 }
-
-//! RANSAC CALL.
-int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx)
+//! Some basic checks
+int CamSRransac::CheckSrBufInput(SRBUF srBuf)
 {
 	int res = 0;
     if( (srBuf.nCols<1) || (srBuf.nRows<1) ){return -1;};
@@ -94,27 +93,43 @@ int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool
 		RscBufFree();
 		RscBufAlloc();
 	};
+  return res;
+}
+//! RANSAC CALL.
+int CamSRransac::SetSegmMap(SRBUF srBuf, unsigned char* segmMap)
+{
+	int res = 0;
+    res += CheckSrBufInput(srBuf); if( res<0 ){return -1;};
+	int num = srBuf.nCols*srBuf.nRows; 
+    memcpy( _inBuf.bg, segmMap, num*sizeof(unsigned char));
+
+  return res;
+}
+
+//! RANSAC CALL.
+int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char segIdx)
+{
+	int res = 0;
+    res += CheckSrBufInput(srBuf); if( res<0 ){return -1;};
 
 	int num = srBuf.nCols*srBuf.nRows; 
     std::vector<int> outliers; outliers.erase(outliers.begin(),outliers.end());
     for(int k=0; k< num; k++)
     {
-	  if(segmMap[k]==segIdx)  // if pixel is not segmented yet
+	  if(_inBuf.bg[k]>=segIdx)  // if pixel is not segmented yet
 	  {
 		outliers.push_back(k); // add pixel to outliers
 	  }
     }
     
-
+  _nIter=0;
   res+=ResetPlane(&_plaBst); // reset best plane
-  if( (z!=NULL) && (y!=NULL) && (x!=NULL) && (isNaN!=NULL) &&  (segmMap!=NULL))
+  if( (z!=NULL) && (y!=NULL) && (x!=NULL) && (isNaN!=NULL) )
   {
 	  for(int it=0; it < _nIterMax; it++)
 	  {
-		// TODO:  add for loop on number of iterations
 		// TODO: check if mutex is necessary to prevent buffers from being cleared while ransac is running
-		// res+=RansacIter(srBuf, z, y, x, isNaN, segmMap, segIdx);
-		res += RansacIter(srBuf, outliers, z, y, x, isNaN, segmMap, segIdx);
+		res += RansacIter(srBuf, outliers, z, y, x, isNaN, segIdx);
 	  	if((int)_plaCur.inliers.size() > num /10) // if 10% of points are in consensus set
 		{
 		  float perc = ((float) _plaCur.inliers.size()) / (float)num;
@@ -131,25 +146,32 @@ int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool
 		}
 	  }
   } // END OF if protecting from null buffers
-  if(_plaBst.iter <0){return res;};
-  res += SetDists(srBuf,_plaBst.nVec, z, y, x, isNaN, segmMap, segIdx);
+  //if(_plaBst.iter <0){return res;};
+  res += SetDists(srBuf,_plaBst.nVec, z, y, x);
   for(int k=0; k< num; k++)
   {
-	  if(!( (isNaN[k]==0) && (segmMap[k]==segIdx) && (_poDist[k] < _dist2pla) && (_poDist[k] >= 0.0))) // CAREFUL, there is a not
+	  if((!( (isNaN[k]==0) && (_poDist[k] < _dist2pla) && (_poDist[k] >= 0.0)  ) ) && (_inBuf.bg[k]>=segIdx) ) // CAREFUL, there is a not
 	  {
 		_plaBst.outliers.push_back(k); // add pixel to outliers
+		_inBuf.bg[k] = segIdx+1; // modify segmented map
 	  }
+	  /*else
+	  {
+		  
+	  }*/
   }
 
   return res;
 }
 //! ONE RANSAC ITERATION.
-int CamSRransac::RansacIter(SRBUF srBuf, std::vector<int> outliers, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx)
+int CamSRransac::RansacIter(SRBUF srBuf, std::vector<int> &outliers, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char segIdx)
 {
   int res = 0;
   const int nSeeds=9; // HARDCODED NUMBER OF SEEDS;
   int num = (int) outliers.size(); 
-  if(num< nSeeds){ return -1;}; // if too few points, do nothing
+  if(num< nSeeds){ 
+	  return -1;
+  }; // if too few points, do nothing
   res+=ResetPlane(&_plaCur); // reset current plane
   int seeds[nSeeds];
   int idx,pix;
@@ -180,7 +202,7 @@ int CamSRransac::RansacIter(SRBUF srBuf, std::vector<int> outliers, unsigned sho
 				     (_plaCur.nVec[2]*(double)z[pix]) +
 				     (_plaCur.nVec[3]             ) ) * den;
 	_poDist[pix] = poDist;
-	if( (isNaN[pix]==0) && (segmMap[pix]==segIdx) && (poDist < _dist2pla) && (poDist >= 0.0))
+	if( (isNaN[pix]==0) && (poDist < _dist2pla) && (poDist >= 0.0))
 	{
 		_plaCur.inliers.push_back(pix); // add pixel to inliers
 	}
@@ -216,7 +238,7 @@ int CamSRransac::SetPlaCurNvec(Eigen::MatrixXd A)
   return res;
 }
 //! Compute distances.
-int CamSRransac::SetDists(SRBUF srBuf, double nVec[4], unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx)
+int CamSRransac::SetDists(SRBUF srBuf, double nVec[4], unsigned short* z, short* y, short* x)
 {
   int res = 0;
   int num = srBuf.nCols*srBuf.nRows;
@@ -321,10 +343,15 @@ SRPLRSC_API int PLRSC_Close(SRPLRSC srPLRSC)
   delete(srPLRSC);
   return 0;
 }
-SRPLRSC_API int PLRSC_ransac(SRPLRSC srPLRSC, SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx)
+SRPLRSC_API int PLRSC_ransac(SRPLRSC srPLRSC, SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char segIdx)
 {
   if(!srPLRSC)return -1;
-  return  srPLRSC->ransac(srBuf, z, y, x, isNaN, segmMap, segIdx);
+  return  srPLRSC->ransac(srBuf, z, y, x, isNaN, segIdx);
+}
+SRPLRSC_API int PLRSC_SetSegmMap(SRPLRSC srPLRSC, SRBUF srBuf, unsigned char* segmMap)
+{
+  if(!srPLRSC)return -1;
+  return  srPLRSC->SetSegmMap(srBuf, segmMap);
 }
 SRPLRSC_API int PLRSC_GetIter(SRPLRSC srPLRSC)
 {
