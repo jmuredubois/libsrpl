@@ -79,9 +79,9 @@ private:
 private:
 	void RscBufAlloc();
 	void RscBufFree();
-	int RansacIter(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx);
-	int SetDists(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx);
+	int RansacIter(SRBUF srBuf, std::vector<int> outliers, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx);
+	int SetDists(SRBUF srBuf, double nVec[4], unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx);
+	int SetPlaCurNvec(Eigen::MatrixXd A);
 	int ResetPlane(RSCPLAN* plan);
-	int GenPerms(bool* isNaN, unsigned char* segmMap); //!< generate permutations
 	unsigned int time_seed();
 };

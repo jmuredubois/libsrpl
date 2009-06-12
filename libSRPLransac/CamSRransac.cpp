@@ -26,7 +26,7 @@ CamSRransac::CamSRransac(SRBUF srBuf)
 	_inliersStop=num-100;
 	_poDist = NULL;
 	_sgDist = NULL;
-	_dist2pla = 200; // HARDCODED for now
+	_dist2pla = 100; // HARDCODED for now
 	RscBufAlloc(); // SHOULD ALWAYS BE LAST
 	
 }
@@ -95,15 +95,26 @@ int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool
 		RscBufAlloc();
 	};
 
+	int num = srBuf.nCols*srBuf.nRows; 
+    std::vector<int> outliers; outliers.erase(outliers.begin(),outliers.end());
+    for(int k=0; k< num; k++)
+    {
+	  if(segmMap[k]==segIdx)  // if pixel is not segmented yet
+	  {
+		outliers.push_back(k); // add pixel to outliers
+	  }
+    }
+    
+
   res+=ResetPlane(&_plaBst); // reset best plane
-  int num = srBuf.nCols*srBuf.nRows; 
   if( (z!=NULL) && (y!=NULL) && (x!=NULL) && (isNaN!=NULL) &&  (segmMap!=NULL))
   {
 	  for(int it=0; it < _nIterMax; it++)
 	  {
 		// TODO:  add for loop on number of iterations
 		// TODO: check if mutex is necessary to prevent buffers from being cleared while ransac is running
-		res+=RansacIter(srBuf, z, y, x, isNaN, segmMap, segIdx);
+		// res+=RansacIter(srBuf, z, y, x, isNaN, segmMap, segIdx);
+		res += RansacIter(srBuf, outliers, z, y, x, isNaN, segmMap, segIdx);
 	  	if((int)_plaCur.inliers.size() > num /10) // if 10% of points are in consensus set
 		{
 		  float perc = ((float) _plaCur.inliers.size()) / (float)num;
@@ -113,97 +124,112 @@ int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool
 			  // victory :-) , now, save best vector
 			  res+=ResetPlane(&_plaBst); // reset best plane
 			  memcpy( (void*) &(_plaBst.nVec), (const void*) &(_plaCur.nVec), 4*sizeof(double));
-			  _plaBst.inliers = _plaCur.inliers; // HOPEFULLY, STD::VECTOR DOES DEEP COPY
+			  _plaBst.inliers = _plaCur.inliers;   //  STD::VECTOR DOES DEEP COPY
+			  //_plaBst.outliers = _plaCur.outliers; //  STD::VECTOR DOES DEEP COPY
 			  _plaBst.iter = it;
 		  }
 		}
 	  }
   } // END OF if protecting from null buffers
+  if(_plaBst.iter <0){return res;};
+  res += SetDists(srBuf,_plaBst.nVec, z, y, x, isNaN, segmMap, segIdx);
+  for(int k=0; k< num; k++)
+  {
+	  if(!( (isNaN[k]==0) && (segmMap[k]==segIdx) && (_poDist[k] < _dist2pla) && (_poDist[k] >= 0.0))) // CAREFUL, there is a not
+	  {
+		_plaBst.outliers.push_back(k); // add pixel to outliers
+	  }
+  }
 
-	return res;
+  return res;
 }
 //! ONE RANSAC ITERATION.
-int CamSRransac::RansacIter(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx)
+int CamSRransac::RansacIter(SRBUF srBuf, std::vector<int> outliers, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx)
 {
   int res = 0;
-  int num = srBuf.nCols*srBuf.nRows; 
+  const int nSeeds=9; // HARDCODED NUMBER OF SEEDS;
+  int num = (int) outliers.size(); 
+  if(num< nSeeds){ return -1;}; // if too few points, do nothing
   res+=ResetPlane(&_plaCur); // reset current plane
-
-	  const int nSeeds=9; //9; // more than 3 would be nice but Eigen does not ssem to like that :-(
-	  //res+=GenPerms(isNaN, segmMap);
-	  int seeds[nSeeds];
-	  int pix;
-	  //srand ( this->time_seed() ); // avoid seedign at each iter
-	  //
-	  Eigen::Matrix<double, nSeeds, 4> A;
-	  for(int k=0; k<nSeeds; k++)
+  int seeds[nSeeds];
+  int idx,pix;
+  //srand ( this->time_seed() ); // avoid seeding at each iter
+  Eigen::Matrix<double, nSeeds, 4> A;  // trying to solve the overdetermined system   A*x = 0
+  for(int k=0; k<nSeeds; k++)
+  {
+	idx = k;// DEBUG DEBUG DEBUG rand() / ( RAND_MAX / num + 1 );
+	idx = rand() / ( RAND_MAX / num + 1 );
+	pix = outliers[idx];
+	seeds[k]=pix;
+	A(k,0) = (double)x[pix];
+	A(k,1) = (double)y[pix];
+	A(k,2) = (double)z[pix];
+	A(k,3) = 1.0;
+  }
+  res += this->SetPlaCurNvec(A);
+  // prepare for distance computation
+  double poDist = 0;
+  double den = 1/sqrt((_plaCur.nVec[0]*_plaCur.nVec[0]) + (_plaCur.nVec[1]*_plaCur.nVec[1]) + (_plaCur.nVec[2]*_plaCur.nVec[2]) );
+  int pos=outliers[0];
+  // compute distance and compare to objective _dist2pla
+  for(int i=0; i<num; i++)
 	  {
-		pix = k;// DEBUG DEBUG DEBUG rand() / ( RAND_MAX / num + 1 );
-		pix = rand() / ( RAND_MAX / num + 1 );
-		seeds[k]=pix;
-		A(k,0) = (double)x[pix];
-		A(k,1) = (double)y[pix];
-		A(k,2) = (double)z[pix];
-		A(k,3) = 1.0;
-	  }
-	  Eigen::SVD<Eigen::MatrixXd> svd(A);
-	  //Eigen::MatrixXd U = svd.matrixU();
-	  Eigen::MatrixXd V = svd.matrixV();
-      //Eigen::VectorXd S = svd.singularValues();
-	  Eigen::Vector3d nVec3;
-	  for(int k=0; k<3; k++)
-	  {
-		  nVec3(k) = V(k,3); // last column of V (corresponding to smallest S) is singular vect
-	  }
-	  double d = 1/nVec3.norm();
-	  nVec3.normalize();
-	  Eigen::Vector4d nVec4; nVec4.setZero();
-	  nVec4(3)=d; _plaCur.nVec[3] = d;
-	  for(int k=0; k<3; k++)
-	  {
-		  nVec4(k) = nVec3(k);
-		  _plaCur.nVec[k] = nVec3(k);
-	  }
-	  //std::cout << nVec4;
-	  //nVec4.normalize();
-	  // prepare for distance computation
-	  double poDist = 0;
-	  double den = 1/sqrt((_plaCur.nVec[0]*_plaCur.nVec[0]) + (_plaCur.nVec[1]*_plaCur.nVec[1]) + (_plaCur.nVec[2]*_plaCur.nVec[2]) );
-	  // compute distance and compare to objective _dist2pla
-	  for(int i=0; i<num; i++)
-	  {
-		  poDist = abs(  (_plaCur.nVec[0]*(double)x[i]) +
-					     (_plaCur.nVec[1]*(double)y[i]) +
-					     (_plaCur.nVec[2]*(double)z[i]) +
-					     (_plaCur.nVec[3]             ) ) * den;
-		_poDist[i] = poDist;
-		if(poDist <0.0)
-		{ // something is awfully wrong in hotfix for ML compatibility since it generates negative square distances
-			std::cout << poDist;
-		}
-		if( (isNaN[i]==0) && (segmMap[i]==segIdx) && (poDist < _dist2pla) && (poDist >= 0.0))
-		{
-			_plaCur.inliers.push_back(i); // add pixel to inliers
-		}
-	  }
-	  _nIter+=1;
-	return res;
+		  pix = outliers[i];
+	  poDist = abs(  (_plaCur.nVec[0]*(double)x[pix]) +
+				     (_plaCur.nVec[1]*(double)y[pix]) +
+				     (_plaCur.nVec[2]*(double)z[pix]) +
+				     (_plaCur.nVec[3]             ) ) * den;
+	_poDist[pix] = poDist;
+	if( (isNaN[pix]==0) && (segmMap[pix]==segIdx) && (poDist < _dist2pla) && (poDist >= 0.0))
+	{
+		_plaCur.inliers.push_back(pix); // add pixel to inliers
+	}
+	/*else // TOO LONG FOR EACH ITERATION, DONE ONLY AFTER THE LOOP
+	{
+		_plaCur.outliers.push_back(outliers[i]); 
+	}*/
+  }
+  _nIter+=1;
+  return res;
+}
+//! ONE RANSAC ITERATION.
+int CamSRransac::SetPlaCurNvec(Eigen::MatrixXd A)
+{
+  int res = 0;
+  Eigen::SVD<Eigen::MatrixXd> svd(A); // perform SVD decomposition of A
+  //Eigen::MatrixXd U = svd.matrixU(); //Eigen::VectorXd S = svd.singularValues();
+  Eigen::MatrixXd V = svd.matrixV();  // only V matrix is needed
+  Eigen::Vector3d nVec3;
+  for(int k=0; k<3; k++)
+  {
+	  nVec3(k) = V(k,3); // last column of V (corresponding to smallest S) is singular vector
+  }
+  double d = 1/nVec3.norm();
+  nVec3.normalize();
+  Eigen::Vector4d nVec4; nVec4.setZero();
+  nVec4(3)=d; _plaCur.nVec[3] = d;
+  for(int k=0; k<3; k++)
+  {
+	  nVec4(k) = nVec3(k);
+	  _plaCur.nVec[k] = nVec3(k);
+  }
+  return res;
 }
 //! Compute distances.
-int CamSRransac::SetDists(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx)
+int CamSRransac::SetDists(SRBUF srBuf, double nVec[4], unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx)
 {
   int res = 0;
   int num = srBuf.nCols*srBuf.nRows;
   double sgDist;
-  double den = 1/((_plaCur.nVec[0]*_plaCur.nVec[0]) + (_plaCur.nVec[1]*_plaCur.nVec[1]) + (_plaCur.nVec[2]*_plaCur.nVec[2]) );
+  double den = 1/((nVec[0]*nVec[0]) + (nVec[1]*nVec[1]) + (nVec[2]*nVec[2]) );
   for(int i=0; i<num; i++)
   {
-	  sgDist =     abs(  (_plaCur.nVec[0]*(double)x[i]) +
-					     (_plaCur.nVec[1]*(double)y[i]) +
-					     (_plaCur.nVec[2]*(double)z[i]) +
-					     (_plaCur.nVec[3]             ) ) * den;
+	  sgDist =     abs(  (nVec[0]*(double)x[i]) +
+					     (nVec[1]*(double)y[i]) +
+					     (nVec[2]*(double)z[i]) +
+					     (nVec[3]             ) ) * den;
 	 _poDist[i] = abs(sgDist);
-	 _sgDist[i] = abs(sgDist);
+	 _sgDist[i] = sgDist;
   }
 
 	return res;
@@ -215,33 +241,8 @@ int CamSRransac::ResetPlane(RSCPLAN* plan)
 	int res=0;
 	memset( (void*) &(plan->nVec), 0x0, 4*sizeof(double) );
 	plan->inliers.erase(plan->inliers.begin(), plan->inliers.end());
+	plan->outliers.erase(plan->outliers.begin(), plan->outliers.end());
 	plan->iter = -1;
-	return res;
-}
-
-//! generate indexes permutations
-int CamSRransac::GenPerms(bool* isNaN, unsigned char* segmMap)
-{
-	int res = 0;
-    if( (_inBuf.nCols<1) || (_inBuf.nRows<1) ){return -1;};
-	int num = _inBuf.nCols*_inBuf.nRows; 
-	if( (isNaN!=NULL) &&  (segmMap!=NULL))
-	{
-	  srand ( this->time_seed() );
-	  _perms.erase(_perms.begin(),_perms.end());
-	  std::vector<int>::iterator it;
-	  int k, N;
-	  k=0;
-	  _perms.push_back(0);
-	  //_perms.insert(it+k,0); //inserting zero-th element is probably silly
-	  for(int i = 1; i<num; i++)
-	  {
-		  N=(int)_perms.size();
-		  it=_perms.begin();
-		  k = rand() / ( RAND_MAX / N + 1 );
-		  _perms.insert(it+k,i);
-	  } // END OF loop on all points
-	} // END OF if protecting from null buffers
 	return res;
 }
 

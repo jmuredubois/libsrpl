@@ -11,6 +11,7 @@
 #define SRRSCPLANHEADER
 typedef struct rscPlanVar{
     std::vector<int> inliers;
+	std::vector<int> outliers;
     double nVec[4];
 	int iter;
 } RSCPLAN;
