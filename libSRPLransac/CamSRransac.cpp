@@ -21,12 +21,12 @@ CamSRransac::CamSRransac(SRBUF srBuf)
 	_inBuf.nRows = srBuf.nRows;
 	int num = srBuf.nCols*srBuf.nRows;
 	_inBuf.bufferSizeInBytes = num*2*sizeof(unsigned char);
-	_nIterMax = 2800;
+	_nIterMax = 3000;
 	_nIter = 0;
 	_inliersStop=num-100;
 	_poDist = NULL;
 	_sgDist = NULL;
-	_dist2pla = 300; // HARDCODED for now
+	_dist2pla = 200; // HARDCODED for now
 	RscBufAlloc(); // SHOULD ALWAYS BE LAST
 	
 }
@@ -284,30 +284,16 @@ double CamSRransac::SetDistPla(double distPla)
 double CamSRransac::GetProjZRotMat(double mat[9])
 {
 	// in ML, see trunk/srMatlab/utils/rotateSRPtsArbitrary.m
-/* nVec = nVec / norm(nVec);
-a = nVec(1); b = nVec(2); c = nVec(3) ;
-Rx = [ 1 0 0 0; 0 (c / sqrt(b*b + c*c)) -(b / sqrt(b*b + c*c)) 0; 0 (b / sqrt(b*b + c*c)) (c / sqrt(b*b + c*c)) 0; 0 0 0 1];
-v2 = Rx*[nVec;1];
-Ry = [sqrt(b*b +c*c) 0 -a 0 ; 0 1 0 0; a 0 sqrt(b*b +c*c) 0; 0 0 0 1];
-v3 = Ry*[v2];
-
-clear a ans b c nVec v2 v3
-% clear a ans b c nVec ptsZ v2 v3 Rx Ry
-rotMat = Ry*Rx;
-
-if exist('selXYZ')
-    rotMat = Rlast*rotMat;
-end
-*/
 	// http://eigen.tuxfamily.org/dox/classEigen_1_1Quaternion.html#2e6246f7bf5ec16f738889a4f3e9c3b9
 	Eigen::Vector3d nVec3;
-	Eigen::Vector3d nVecZ; nVecZ.setZero(); nVecZ(2) = 1.0;
+	Eigen::Vector3d nVecZ; nVecZ.setZero(); nVecZ(2) = -1.0;
 	for(int k=0; k<3; k++)
 	{
 		  nVec3(k) = _plaBst.nVec[k];
 	}
 	Eigen::Quaterniond qz;
-	qz.setFromTwoVectors(nVec3, nVecZ);
+	//qz.setFromTwoVectors(nVec3, nVecZ);
+	qz.setFromTwoVectors(nVecZ, nVec3);
 	Eigen::Matrix3d matE = qz.toRotationMatrix();
 	for(int k=0; k<9; k++)
 	{
