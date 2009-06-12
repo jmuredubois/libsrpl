@@ -292,8 +292,7 @@ double CamSRransac::GetProjZRotMat(double mat[9])
 		  nVec3(k) = _plaBst.nVec[k];
 	}
 	Eigen::Quaterniond qz;
-	//qz.setFromTwoVectors(nVec3, nVecZ);
-	qz.setFromTwoVectors(nVecZ, nVec3);
+	qz.setFromTwoVectors(nVec3, nVecZ);
 	Eigen::Matrix3d matE = qz.toRotationMatrix();
 	for(int k=0; k<9; k++)
 	{
@@ -361,7 +360,7 @@ SRPLRSC_API RSCPLAN PLRSC_GetPlaCurr(SRPLRSC srPLRSC)
   }
   return srPLRSC->GetPlaCurr();
 }
-SRPLRSC_API double PLRSC_GetDispPla(SRPLRSC srPLRSC)
+SRPLRSC_API double PLRSC_GetDistPla(SRPLRSC srPLRSC)
 {
   if(!srPLRSC)return -1;
   return srPLRSC->GetDistPla();
