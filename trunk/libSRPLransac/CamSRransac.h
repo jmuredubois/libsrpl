@@ -43,7 +43,8 @@ public:
 	//! destructor
 	~CamSRransac();
 	//! coordinate transform  method
-	int ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx);
+	int ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char segIdx);
+	int SetSegmMap(SRBUF srBuf, unsigned char* segmMap);
 	int GetIter(){return _nIter;};
 	int GetIterMax(){return _nIterMax;};
 	int SetIterMax(int iterMax);
@@ -79,8 +80,9 @@ private:
 private:
 	void RscBufAlloc();
 	void RscBufFree();
-	int RansacIter(SRBUF srBuf, std::vector<int> outliers, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx);
-	int SetDists(SRBUF srBuf, double nVec[4], unsigned short* z, short* y, short* x, bool* isNaN, unsigned char* segmMap, unsigned char segIdx);
+	int CheckSrBufInput(SRBUF srBuf);
+	int RansacIter(SRBUF srBuf, std::vector<int> &outliers, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char segIdx);
+	int SetDists(SRBUF srBuf, double nVec[4], unsigned short* z, short* y, short* x);
 	int SetPlaCurNvec(Eigen::MatrixXd A);
 	int ResetPlane(RSCPLAN* plan);
 	unsigned int time_seed();
