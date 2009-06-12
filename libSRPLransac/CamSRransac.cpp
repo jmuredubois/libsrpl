@@ -148,9 +148,10 @@ int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool
   } // END OF if protecting from null buffers
   //if(_plaBst.iter <0){return res;};
   res += SetDists(srBuf,_plaBst.nVec, z, y, x);
+  _plaBst.outliers.erase(_plaBst.outliers.begin(),_plaBst.outliers.end());
   for(int k=0; k< num; k++)
   {
-	  if((!( (isNaN[k]==0) && (_poDist[k] < _dist2pla) && (_poDist[k] >= 0.0)  ) ) && (_inBuf.bg[k]>=segIdx) ) // CAREFUL, there is a not
+	  if( ( (isNaN[k]!=0) || (_poDist[k] >= _dist2pla) || (_poDist[k] < 0.0) ) && (_inBuf.bg[k]>=segIdx) ) // CAREFUL, there is a not
 	  {
 		_plaBst.outliers.push_back(k); // add pixel to outliers
 		_inBuf.bg[k] = segIdx+1; // modify segmented map
