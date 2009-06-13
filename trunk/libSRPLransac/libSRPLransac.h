@@ -46,6 +46,7 @@ SRPLRSC_API double PLRSC_SetDistPla(SRPLRSC srPLRSC, double distPla); // distanc
 SRPLRSC_API double PLRSC_GetProjZRotMat(SRPLRSC srPLRSC, double mat[9]); // get projection matrix that turns best plane to z normal
 SRPLRSC_API RSCPLAN PLRSC_GetPlaBest(SRPLRSC srPLRSC);
 SRPLRSC_API RSCPLAN PLRSC_GetPlaCurr(SRPLRSC srPLRSC);
+SRPLRSC_API RSCPLAN PLRSC_GetBestPla(SRPLRSC srPLRSC, unsigned int lev);
 
 //#ifdef __cplusplus
 //}
