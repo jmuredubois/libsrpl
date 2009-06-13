@@ -120,6 +120,7 @@ int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool
 	  {
 		  _inBuf.bg[k] = 0;
 		  outliers.push_back(k);
+		  _bestPlanes.erase(_bestPlanes.begin(), _bestPlanes.end());
 	  }
 	  else
 	  {
@@ -169,6 +170,7 @@ int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool
 		  
 	  }*/
   }
+  _bestPlanes.push_back(_plaBst);
 
   return res;
 }
@@ -333,6 +335,16 @@ double CamSRransac::GetProjZRotMat(double mat[9])
 
 	return 0;
 }
+RSCPLAN CamSRransac::GetBestPla(unsigned int lev)
+{
+	if(lev> _bestPlanes.size() )
+	{
+		RSCPLAN plan0;
+		for(int i=0; i<4; i++) {plan0.nVec[i]=0.0;} ;
+		return plan0;
+	}
+	return _bestPlanes.at(lev);
+}
 
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
@@ -414,3 +426,13 @@ SRPLRSC_API double PLRSC_GetProjZRotMat(SRPLRSC srPLRSC, double mat[9])
 	return srPLRSC->GetProjZRotMat(mat);
 }
 
+SRPLRSC_API RSCPLAN PLRSC_GetBestPla(SRPLRSC srPLRSC, unsigned int lev)
+{
+  if(!srPLRSC)
+  {
+	RSCPLAN plan0;
+	for(int i=0; i<4; i++) {plan0.nVec[i]=0.0;} ;
+	return plan0;
+  }
+  return srPLRSC->GetBestPla(lev);
+}

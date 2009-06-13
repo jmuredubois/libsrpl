@@ -53,6 +53,7 @@ public:
 	double GetProjZRotMat(double mat[9]);//
 	RSCPLAN GetPlaBest(){return _plaBst;};
 	RSCPLAN GetPlaCurr(){return _plaCur;};
+	RSCPLAN GetBestPla(unsigned int lev);
 
 private:
 	SRBUF   _srBuf;
@@ -70,6 +71,7 @@ private:
 	double _avgSqDist;
 	RSCPLAN _plaCur;
 	RSCPLAN _plaBst;
+	std::vector<RSCPLAN> _bestPlanes;
 
 
 #ifdef AVGTIMER
