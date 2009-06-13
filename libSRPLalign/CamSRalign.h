@@ -25,7 +25,7 @@
 #include <Eigen/SVD> // for SVD matrix decomp
 #include <Eigen/LU>	 // for LU matrix decomp
 #include <Eigen/Geometry>	 // for geometry transf (quaternions, etc)
-
+using namespace Eigen;
 
 /**
  * Camera align class \n
@@ -43,6 +43,7 @@ public:
 	int align3plans(double mat[16], double n0[12], double n1[12]);
 
 private:
+	Matrix4d hebAmat(Vector3d n0, Vector3d n1);
 	
 #ifdef AVGTIMER
   CPreciseTimer _ctrTimer;	//!< timer for align operation
