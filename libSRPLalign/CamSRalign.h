@@ -26,6 +26,7 @@
 #include <Eigen/LU>	 // for LU matrix decomp
 #include <Eigen/Geometry>	 // for geometry transf (quaternions, etc)
 using namespace Eigen;
+// look at http://eigen.tuxfamily.org/dox/TutorialCore.html
 
 /**
  * Camera align class \n
@@ -44,6 +45,7 @@ public:
 
 private:
 	Matrix4d hebAmat(Vector3d n0, Vector3d n1);
+	Matrix3d heb0mat(Vector3d v);
 	
 #ifdef AVGTIMER
   CPreciseTimer _ctrTimer;	//!< timer for align operation
