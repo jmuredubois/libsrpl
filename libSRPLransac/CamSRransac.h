@@ -81,7 +81,7 @@ private:
 	void RscBufAlloc();
 	void RscBufFree();
 	int CheckSrBufInput(SRBUF srBuf);
-	int RansacIter(SRBUF srBuf, std::vector<int> &outliers, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char segIdx);
+	int RansacIter(SRBUF srBuf, std::vector<int> *outliers, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char segIdx);
 	int SetDists(SRBUF srBuf, double nVec[4], unsigned short* z, short* y, short* x);
 	int SetPlaCurNvec(Eigen::MatrixXd A);
 	int ResetPlane(RSCPLAN* plan);

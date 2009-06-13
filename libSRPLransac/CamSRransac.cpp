@@ -116,9 +116,17 @@ int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool
     std::vector<int> outliers; outliers.erase(outliers.begin(),outliers.end());
     for(int k=0; k< num; k++)
     {
-	  if(_inBuf.bg[k]>=segIdx)  // if pixel is not segmented yet
+	  if(segIdx==0)
 	  {
-		outliers.push_back(k); // add pixel to outliers
+		  _inBuf.bg[k] = 0;
+		  outliers.push_back(k);
+	  }
+	  else
+	  {
+		if(_inBuf.bg[k]>=segIdx)  // if pixel is not segmented yet
+		{
+			outliers.push_back(k); // add pixel to outliers
+		}
 	  }
     }
     
@@ -129,8 +137,8 @@ int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool
 	  for(int it=0; it < _nIterMax; it++)
 	  {
 		// TODO: check if mutex is necessary to prevent buffers from being cleared while ransac is running
-		res += RansacIter(srBuf, outliers, z, y, x, isNaN, segIdx);
-	  	if((int)_plaCur.inliers.size() > num /10) // if 10% of points are in consensus set
+		res += RansacIter(srBuf, &outliers, z, y, x, isNaN, segIdx);
+	  	if((int)_plaCur.inliers.size() > (outliers.size() /10)) // if 10% of points are in consensus set
 		{
 		  float perc = ((float) _plaCur.inliers.size()) / (float)num;
 		  float percB= ((float) _plaBst.inliers.size()) / (float)num;
@@ -165,11 +173,11 @@ int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool
   return res;
 }
 //! ONE RANSAC ITERATION.
-int CamSRransac::RansacIter(SRBUF srBuf, std::vector<int> &outliers, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char segIdx)
+int CamSRransac::RansacIter(SRBUF srBuf, std::vector<int> *outliers, unsigned short* z, short* y, short* x, bool* isNaN, unsigned char segIdx)
 {
   int res = 0;
   const int nSeeds=9; // HARDCODED NUMBER OF SEEDS;
-  int num = (int) outliers.size(); 
+  int num = (int) outliers->size(); 
   if(num< nSeeds){ 
 	  return -1;
   }; // if too few points, do nothing
@@ -182,7 +190,7 @@ int CamSRransac::RansacIter(SRBUF srBuf, std::vector<int> &outliers, unsigned sh
   {
 	idx = k;// DEBUG DEBUG DEBUG rand() / ( RAND_MAX / num + 1 );
 	idx = rand() / ( RAND_MAX / num + 1 );
-	pix = outliers[idx];
+	pix = outliers->at(idx);
 	seeds[k]=pix;
 	A(k,0) = (double)x[pix];
 	A(k,1) = (double)y[pix];
@@ -193,11 +201,11 @@ int CamSRransac::RansacIter(SRBUF srBuf, std::vector<int> &outliers, unsigned sh
   // prepare for distance computation
   double poDist = 0;
   double den = 1/sqrt((_plaCur.nVec[0]*_plaCur.nVec[0]) + (_plaCur.nVec[1]*_plaCur.nVec[1]) + (_plaCur.nVec[2]*_plaCur.nVec[2]) );
-  int pos=outliers[0];
+  int pos=outliers->at(0);
   // compute distance and compare to objective _dist2pla
   for(int i=0; i<num; i++)
 	  {
-		  pix = outliers[i];
+		  pix = outliers->at(i);
 	  poDist = abs(  (_plaCur.nVec[0]*(double)x[pix]) +
 				     (_plaCur.nVec[1]*(double)y[pix]) +
 				     (_plaCur.nVec[2]*(double)z[pix]) +
