@@ -46,6 +46,7 @@ public:
 private:
 	Matrix4d hebAmat(Vector3d n0, Vector3d n1);
 	Matrix3d heb0mat(Vector3d v);
+	Vector3d crossing(Vector4d *n0, Vector4d *n1, Vector4d *n2);
 	
 #ifdef AVGTIMER
   CPreciseTimer _ctrTimer;	//!< timer for align operation

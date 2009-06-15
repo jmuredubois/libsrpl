@@ -50,17 +50,38 @@ int CamSRalign::align3plans(double mat[16], double n0[12], double n1[12])
   A2 = hebAmat(N02, N12);
   
   Matrix4d B = A0 + A1 + A2;
-  SVD<MatrixXd> svd(B); // perform SVD decomposition of A
+  SVD<MatrixXd> svd(B); //!< perform SVD decomposition of A
   //Eigen::MatrixXd U = svd.matrixU(); //Eigen::VectorXd S = svd.singularValues();
   MatrixXd V = svd.matrixV();  // only V matrix is needed
-  Vector4d quat = V.col(3); // last column of V (corresponding to smallest S) is singular vector
-  Quaterniond qrot = Quaterniond(quat(0), quat(1), quat(2), quat(3)); // produce quaternion representing rotation
+  Vector4d quat = V.col(3); //!< last column of V (corresponding to smallest S) is singular vector
+  Quaterniond qrot = Quaterniond(quat(0), quat(1), quat(2), quat(3)); //!< produce quaternion representing rotation
+
+  //! compute the crossings to find the translations (rotations should be done around origin)
+  Vector3d xing0 = this->crossing( &n00, &n01, &n02);
+  Vector3d xing1 = this->crossing( &n10, &n11, &n12);
+
+  Translation3d tran0 = Translation3d(xing0);
+  Translation3d tran1 = Translation3d(xing1);
+
+  /** Total transform : \n
+   * - translate Pts1 to origin, \n
+   * - rotate Pts1 to be parallel to Pts0, \n 
+   * - translate Pts1 to Pts0.
+   */
+  Eigen::Transform3d trf1to0; trf1to0.setIdentity();
+  trf1to0.translate(xing1.inverse());
+  trf1to0.rotate(qrot);
+  trf1to0.translate(xing0);
+
+  Matrix4d resEig = trf1to0.matrix();
   
   return res;
 }
 
 Matrix4d CamSRalign::hebAmat(Vector3d n0, Vector3d n1)
-{
+{ /*  [ (n0+n1)° (n0-n1) ]
+   *  [ (n0-n1)t      0  ]
+   */
 	Matrix4d res; res.setZero();
 	res.corner<3,3>(TopLeft)  = heb0mat(n0+n1);
 	res.corner<3,1>(TopRight) = (n0-n1);
@@ -77,6 +98,23 @@ Matrix3d CamSRalign::heb0mat(Vector3d v)
 	res(0,1) =  v(2); res(0,2) = -v(1);
 	res(1,0) = -v(2); res(1,2) =  v(0);
 	res(2,0) =  v(1); res(1,1) = -v(0);
+	return res;
+}
+
+Vector3d CamSRalign::crossing(Vector4d *n0, Vector4d *n1, Vector4d *n2)
+{ /*  [ n00 n01 n02 ]    [ x ]   [ n03 ]
+   *  [ n10 n11 n12 ] *  [ y ] = [ n13 ]  // find (x,y,z)
+   *  [ n20 n21 n22 ]    [ z ]   [ n23 ]
+   */
+	Vector3d res; res.setZero();
+	Matrix3d A; A.setZero();
+	A.row(0) = n0->start<3>();
+	A.row(1) = n1->start<3>();
+	A.row(2) = n2->start<3>();
+	Vector3d b; b.setZero();
+	b(0) = n0->w(); b(1) = n1->w(); b(2) = n2->w();
+	Matrix3d Ainv = A.inverse();
+	res = Ainv * b;
 	return res;
 }
 
