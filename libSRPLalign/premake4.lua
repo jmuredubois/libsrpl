@@ -5,6 +5,7 @@ solution "libSRPLalign"
 	configurations { "Debug", "Release" }
 
 -- This is for including other Premake scripts.
+dofile( "testLibSRPLalign_prem4.lua" )
 dofile( "libSRPLalign_prem4.lua" )
 
 -- Add options here.

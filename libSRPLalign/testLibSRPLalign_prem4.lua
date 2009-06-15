@@ -1,18 +1,18 @@
 -- Set package name.
-project "libSRPLalign"
+project "testLibSRPLalign"
 	-- if you want a different name for your target than the projects's name.
-	outName						= "libSRPLalign"
-	uuid						"60286734-4D0C-4035-9DC7-656C28B6E38F"
+	outName						= "testLibSRPLalign"
+	uuid						"CA045B0C-7970-4c44-B5BF-4509370BDC19"
 	-- Set the files to include/exclude.
-	files						{ "*.cpp", "*.h" }
-	excludes					{ "test*.cpp" }
+	files						{ "test*.cpp", "*libSR*.h" }
+	--excludes					{ "test*.cpp" }
 	-- Setup the output directory options.
 	--		Note: Use 'libdir' for "lib" kind only.
 	--bindir					"../lib"
 	--libdir					"../lib"
 	-- Set the defines.
-	defines						{ "_SRPL_API_DLL" }
-	implibprefix 				""
+	--defines						{ "_SRPL_API_DLL" }
+	--implibprefix 				""
 	targetprefix 				""
 	-- Common setup
 	language					"C++"
@@ -21,28 +21,17 @@ project "libSRPLalign"
 	--*	Settings that are not dependant
 	--*	on the operating system.
 	--*********************************
+    kind						"ConsoleApp"
 
 -- OPTIONS ---------------------------------------------------------------------
 	-- -- Package options
-	newoption
-	{
-		trigger = "libSRPLalign-static",
-		description = "Build libSRPLalign as static lib rather than dll"
-	}
-
-	-- -- libSRPLavg dll
-	if _OPTIONS["libSRPLalign-static"] then
-		kind 					"StaticLib"
-	else
-		kind 					"SharedLib"
-	end
 
 	-- -- Dynamic Runtime
 	if not _OPTIONS["dynamic-runtime"] then
 		flags					{ "StaticRuntime" }
 	end
 	
-	includedirs					{string.format('%s',os.getenv("JMU_EIGEN"))}-- package includes for EIGEN
+	--includedirs					{string.format('%s',os.getenv("JMU_EIGEN"))}-- package includes for EIGEN
 
 -- CONFIGURATIONS -------------------------------------------------------------
 --
@@ -74,6 +63,12 @@ project "libSRPLalign"
 		implibdir				(string.format('%s%s',os.getenv("JMU_BUILDS"), "/Release/lib")) 
 		defines					{ "NDEBUG" }
 		flags					{ "OptimizeSpeed" }
+        if configuration "windows" then
+            links					{"libSRPLalign"}
+        else
+            links					{"SRPLalign"}
+        end
+		--libdirs					{(string.format('%s%s',os.getenv("JMU_BUILDS"), "/Release/bin"))}
 	configuration "Debug"
 		targetname 				( outName.."d" )
 		targetdir				(string.format('%s%s',os.getenv("JMU_BUILDS"), "/Debug/bin"))
@@ -81,6 +76,12 @@ project "libSRPLalign"
 		implibdir				(string.format('%s%s',os.getenv("JMU_BUILDS"), "/Debug/lib"))
 		defines					{ "DEBUG", "_DEBUG" }
 		flags					{ "Symbols" }
+        if configuration "windows" then
+            links					{"libSRPLalignd"}
+        else
+            links					{"SRPLalignd"}
+        end
+		--libdirs					{(string.format('%s%s',os.getenv("JMU_BUILDS"), "/Debug/bin"))}
 
 	-- -- Operating Systems specific
 	if configuration "windows" then
@@ -93,9 +94,5 @@ project "libSRPLalign"
 	configuration{"macosx", "codeblocks"}
 		libdirs					(string.format('%s', "/usr/local/lib"))
 		
-	configuration "macosx"
-		targetextension		".dylib"
-		linkoptions			"-dynamiclib"
-		
-		
+
 
