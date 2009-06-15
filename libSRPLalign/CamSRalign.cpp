@@ -51,7 +51,8 @@ int CamSRalign::align3plans(double mat[16], double n0[12], double n1[12])
   
   Matrix4d B = A0 + A1 + A2;
   SVD<MatrixXd> svd(B); //!< perform SVD decomposition of A
-  //Eigen::MatrixXd U = svd.matrixU(); //Eigen::VectorXd S = svd.singularValues();
+  //Eigen::MatrixXd U = svd.matrixU(); //Eigen::
+  VectorXd S = svd.singularValues();
   MatrixXd V = svd.matrixV();  // only V matrix is needed
   Vector4d quat = V.col(3); //!< last column of V (corresponding to smallest S) is singular vector
   Quaterniond qrot = Quaterniond(quat(0), quat(1), quat(2), quat(3)); //!< produce quaternion representing rotation
@@ -71,11 +72,29 @@ int CamSRalign::align3plans(double mat[16], double n0[12], double n1[12])
    * - translate Pts1 to Pts0.
    */
   Eigen::Transform3d trf1to0; trf1to0.setIdentity();
-  trf1to0.translate(xing1);
-  trf1to0.rotate(qrot);
-  trf1to0.translate(xing0);
-
   Matrix4d resEig = trf1to0.matrix();
+  std::cout << "matId\n" << resEig << std::endl;
+  trf1to0.translate(xing1);
+  resEig = trf1to0.matrix(); std::cout << "matTrl1\n" << resEig << std::endl;
+  trf1to0.rotate(qrot);
+  resEig = trf1to0.matrix(); std::cout << "matTrl1Rot\n" << resEig << std::endl;
+  trf1to0.translate(xing0);
+  resEig = trf1to0.matrix(); std::cout << "matTrl0\n" << resEig << std::endl;
+
+  resEig = trf1to0.matrix();
+
+  int k=0; // cMatrix col major
+  for(int col = 0; col < 4; col++)
+  {
+	  for(int row = 0; row < 4; row++)
+	  {
+		  mat[k] = resEig(row,col); //
+		  k++;
+	  }
+  }
+
+  std::cout << "mat\n" << resEig << std::endl;
+
   
   return res;
 }
