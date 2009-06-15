@@ -49,13 +49,28 @@ int CamSRalign::align3plans(double mat[16], double n0[12], double n1[12])
   A1 = hebAmat(N01, N11);
   A2 = hebAmat(N02, N12);
   
-  Matrix4d B = A0 + A1 + A2;
+  Matrix4d B = ((A0.transpose())*A0) + ((A1.transpose())*A1) + ((A2.transpose())*A2);
   SVD<MatrixXd> svd(B); //!< perform SVD decomposition of A
+  // std::cout << "B" << std::endl << B << std::endl;
   //Eigen::MatrixXd U = svd.matrixU(); //Eigen::
-  VectorXd S = svd.singularValues();
-  MatrixXd V = svd.matrixV();  // only V matrix is needed
+  Vector4d S = svd.singularValues();
+  // std::cout << "S" << std::endl << S << std::endl;
+  Matrix4d V = svd.matrixV();  // only V matrix is needed
+  // std::cout << "V" << std::endl << V << std::endl;
   Vector4d quat = V.col(3); //!< last column of V (corresponding to smallest S) is singular vector
-  Quaterniond qrot = Quaterniond(quat(0), quat(1), quat(2), quat(3)); //!< produce quaternion representing rotation
+  //for(int k=0; k < 4; k++)
+  //{ // trying qucikfix for -0 coeffs possibly spoiling rotations -> did no work :-/
+	 // if( abs(quat(k)) < 1.0e-10)
+	 // {
+		//  quat(k) = 0.0;
+	 // }
+  //}
+  // std::cout << "quat" << std::endl << quat << std::endl;
+  //http://eigen.tuxfamily.org/dox/classEigen_1_1Quaternion.html#073d5be0431b9af3750e52c92b3fd754
+  // Note the order of the arguments: the real w coefficient first, while internally the coefficients are stored in the following order: [x, y, z, w] 
+  Quaterniond qrot = Quaterniond(quat(3), quat(0), quat(1), quat(2)); //!< stupid attempt to fix quaternion while input is ok
+  Matrix3d mrot = qrot.toRotationMatrix();
+  // std::cout << "mrot" << std::endl << mrot << std::endl;
 
   //! compute the crossings to find the translations (rotations should be done around origin)
   Vector3d xing0 = this->crossing( &n00, &n01, &n02);
@@ -73,13 +88,13 @@ int CamSRalign::align3plans(double mat[16], double n0[12], double n1[12])
    */
   Eigen::Transform3d trf1to0; trf1to0.setIdentity();
   Matrix4d resEig = trf1to0.matrix();
-  std::cout << "matId\n" << resEig << std::endl;
-  trf1to0.translate(xing1);
-  resEig = trf1to0.matrix(); std::cout << "matTrl1\n" << resEig << std::endl;
-  trf1to0.rotate(qrot);
-  resEig = trf1to0.matrix(); std::cout << "matTrl1Rot\n" << resEig << std::endl;
-  trf1to0.translate(xing0);
-  resEig = trf1to0.matrix(); std::cout << "matTrl0\n" << resEig << std::endl;
+  // std::cout << "matId\n" << resEig << std::endl;
+  trf1to0.pretranslate(xing1);
+  // resEig = trf1to0.matrix(); std::cout << "matTrl1\n" << resEig << std::endl;
+  trf1to0.prerotate(qrot);
+  // resEig = trf1to0.matrix(); std::cout << "matTrl1Rot\n" << resEig << std::endl;
+  trf1to0.pretranslate(xing0);
+  // resEig = trf1to0.matrix(); std::cout << "matTrl0\n" << resEig << std::endl;
 
   resEig = trf1to0.matrix();
 
@@ -93,19 +108,19 @@ int CamSRalign::align3plans(double mat[16], double n0[12], double n1[12])
 	  }
   }
 
-  std::cout << "mat\n" << resEig << std::endl;
+  // std::cout << "mat\n" << resEig << std::endl;
 
   
   return res;
 }
 
 Matrix4d CamSRalign::hebAmat(Vector3d n0, Vector3d n1)
-{ /*  [ (n0+n1)° (n0-n1) ]
+{ /*  [ (n0+n1)° (n1-n0) ]
    *  [ (n0-n1)t      0  ]
    */
 	Matrix4d res; res.setZero();
 	res.corner<3,3>(TopLeft)  = heb0mat(n0+n1);
-	res.corner<3,1>(TopRight) = (n0-n1);
+	res.corner<3,1>(TopRight) = (n1-n0);
 	res.corner<1,3>(BottomLeft) = (n0.transpose()-n1.transpose()); 
 	return res;
 }
@@ -118,7 +133,7 @@ Matrix3d CamSRalign::heb0mat(Vector3d v)
 	Matrix3d res; res.setZero();
 	res(0,1) =  v(2); res(0,2) = -v(1);
 	res(1,0) = -v(2); res(1,2) =  v(0);
-	res(2,0) =  v(1); res(1,1) = -v(0);
+	res(2,0) =  v(1); res(2,1) = -v(0);
 	return res;
 }
 
