@@ -54,7 +54,7 @@ int CamSRalign::align3plans(double mat[16], double n0[12], double n1[12])
   //Eigen::MatrixXd U = svd.matrixU(); //Eigen::VectorXd S = svd.singularValues();
   MatrixXd V = svd.matrixV();  // only V matrix is needed
   Vector4d quat = V.col(3); // last column of V (corresponding to smallest S) is singular vector
-  Quaternion qrot = Quaternion(quat(0), quat(1), quat(2), quat(3)); // produce quaternion representing rotation
+  Quaterniond qrot = Quaterniond(quat(0), quat(1), quat(2), quat(3)); // produce quaternion representing rotation
   
   return res;
 }
