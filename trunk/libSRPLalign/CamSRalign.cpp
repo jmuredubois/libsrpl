@@ -59,6 +59,8 @@ int CamSRalign::align3plans(double mat[16], double n0[12], double n1[12])
   //! compute the crossings to find the translations (rotations should be done around origin)
   Vector3d xing0 = this->crossing( &n00, &n01, &n02);
   Vector3d xing1 = this->crossing( &n10, &n11, &n12);
+  Vector3d zero3; zero3.setZero();
+  xing1 =  zero3 - xing1;
 
   Translation3d tran0 = Translation3d(xing0);
   Translation3d tran1 = Translation3d(xing1);
@@ -69,7 +71,7 @@ int CamSRalign::align3plans(double mat[16], double n0[12], double n1[12])
    * - translate Pts1 to Pts0.
    */
   Eigen::Transform3d trf1to0; trf1to0.setIdentity();
-  trf1to0.translate(xing1.inverse());
+  trf1to0.translate(xing1);
   trf1to0.rotate(qrot);
   trf1to0.translate(xing0);
 
