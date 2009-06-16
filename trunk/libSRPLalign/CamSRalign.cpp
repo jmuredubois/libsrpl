@@ -72,29 +72,38 @@ int CamSRalign::align3plans(double mat[16], double n0[12], double n1[12])
   Matrix3d mrot = qrot.toRotationMatrix();
   // std::cout << "mrot" << std::endl << mrot << std::endl;
 
-  //! compute the crossings to find the translations (rotations should be done around origin)
-  Vector3d xing0 = this->crossing( &n00, &n01, &n02);
-  Vector3d xing1 = this->crossing( &n10, &n11, &n12);
-  Vector3d zero3; zero3.setZero();
-  xing0 =  zero3 - xing0; // xing1 =  zero3 - xing1; // apparently, ist xing0 that must be inverted
-													 // I don't understand :'(
-  Translation3d tran0 = Translation3d(xing0);
-  Translation3d tran1 = Translation3d(xing1);
-
-  /** Total transform : \n
-   * - translate Pts1 to origin, \n
-   * - rotate Pts1 to be parallel to Pts0, \n 
-   * - translate Pts1 to Pts0.
-   */
+  // Declare transformation for storage
   Eigen::Transform3d trf1to0; trf1to0.setIdentity();
   Matrix4d resEig = trf1to0.matrix();
-  // std::cout << "matId\n" << resEig << std::endl;
-  trf1to0.pretranslate(xing1);
-  // resEig = trf1to0.matrix(); std::cout << "matTrl1\n" << resEig << std::endl;
-  trf1to0.prerotate(qrot);
-  // resEig = trf1to0.matrix(); std::cout << "matTrl1Rot\n" << resEig << std::endl;
-  trf1to0.pretranslate(xing0);
-  // resEig = trf1to0.matrix(); std::cout << "matTrl0\n" << resEig << std::endl;
+
+
+  ///** Total transform : \n
+  // * - translate Pts1 to origin, \n
+  // * - rotate Pts1 to be parallel to Pts0, \n 
+  // * - translate Pts1 to Pts0.
+  // */
+  ////! compute the crossings to find the translations (rotations should be done around origin)
+  //Vector3d xing0 = this->crossing( &n00, &n01, &n02);
+  //Vector3d xing1 = this->crossing( &n10, &n11, &n12);
+  //Vector3d zero3; zero3.setZero();
+  //xing0 =  zero3 - xing0; // xing1 =  zero3 - xing1; // apparently, ist xing0 that must be inverted
+		//											 // I don't understand :'(
+  //Translation3d tran0 = Translation3d(xing0);
+  //Translation3d tran1 = Translation3d(xing1);
+  ////// std::cout << "matId\n" << resEig << std::endl;
+  ////trf1to0.pretranslate(xing1);
+  ////// resEig = trf1to0.matrix(); std::cout << "matTrl1\n" << resEig << std::endl;
+  ////trf1to0.prerotate(qrot);
+  ////// resEig = trf1to0.matrix(); std::cout << "matTrl1Rot\n" << resEig << std::endl;
+  ////trf1to0.pretranslate(xing0);
+  ////// resEig = trf1to0.matrix(); std::cout << "matTrl0\n" << resEig << std::endl;
+
+  // following Hebert recipe for translation
+  Vector3d tHeb; tHeb.setZero();
+	  tHeb = this->tranHebert( &n00, &n01, &n02, &n10, &n11, &n12);
+  trf1to0.rotate(qrot);
+  trf1to0.pretranslate(tHeb);
+
 
   resEig = trf1to0.matrix();
 
@@ -151,6 +160,22 @@ Vector3d CamSRalign::crossing(Vector4d *n0, Vector4d *n1, Vector4d *n2)
 	b(0) = n0->w(); b(1) = n1->w(); b(2) = n2->w();
 	Matrix3d Ainv = A.inverse();
 	res = Ainv * b;
+	return res;
+}
+
+Vector3d CamSRalign::tranHebert(Vector4d *n00, Vector4d *n01, Vector4d *n02,
+		               Vector4d *n10, Vector4d *n11, Vector4d *n12)
+{ // translatino vector according to Hebert recipe
+	Vector3d res; res.setZero();
+	Vector3d D; D.setZero();
+	D(0) = ( n10->w() - n00->w() );
+	D(1) = ( n11->w() - n01->w() );
+	D(2) = ( n12->w() - n02->w() );
+	Matrix3d C; C.setZero();
+	C.row(0) = n00->start<3>();
+	C.row(1) = n01->start<3>();
+	C.row(2) = n02->start<3>();
+	res = (C.transpose() * C ).inverse() * C.transpose() * D;
 	return res;
 }
 
