@@ -68,7 +68,7 @@ int CamSRalign::align3plans(double mat[16], double n0[12], double n1[12])
   // std::cout << "quat" << std::endl << quat << std::endl;
   //http://eigen.tuxfamily.org/dox/classEigen_1_1Quaternion.html#073d5be0431b9af3750e52c92b3fd754
   // Note the order of the arguments: the real w coefficient first, while internally the coefficients are stored in the following order: [x, y, z, w] 
-  Quaterniond qrot = Quaterniond(quat(3), quat(0), quat(1), quat(2)); //!< stupid attempt to fix quaternion while input is ok
+  Quaterniond qrot = Quaterniond(quat(3), quat(0), quat(1), quat(2)); //!< construct quaternion from coeffs w, x, y, z
   Matrix3d mrot = qrot.toRotationMatrix();
   // std::cout << "mrot" << std::endl << mrot << std::endl;
 
@@ -76,8 +76,8 @@ int CamSRalign::align3plans(double mat[16], double n0[12], double n1[12])
   Vector3d xing0 = this->crossing( &n00, &n01, &n02);
   Vector3d xing1 = this->crossing( &n10, &n11, &n12);
   Vector3d zero3; zero3.setZero();
-  xing1 =  zero3 - xing1;
-
+  xing0 =  zero3 - xing0; // xing1 =  zero3 - xing1; // apparently, ist xing0 that must be inverted
+													 // I don't understand :'(
   Translation3d tran0 = Translation3d(xing0);
   Translation3d tran1 = Translation3d(xing1);
 
