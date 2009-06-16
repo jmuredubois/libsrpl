@@ -31,7 +31,7 @@ project "libSRPLcoordTrf"
 	}
 
 	-- -- libSRPLavg dll
-	if _OPTIONS["libSRPLcoordTrf-static"] then
+	if not _OPTIONS["libSRPLcoordTrf-static"] then
 		kind 					"SharedLib"
 	else
 		kind 					"StaticLib"

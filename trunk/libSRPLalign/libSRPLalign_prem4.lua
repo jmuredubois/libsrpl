@@ -31,10 +31,10 @@ project "libSRPLalign"
 	}
 
 	-- -- libSRPLavg dll
-	if _OPTIONS["libSRPLalign-static"] then
-		kind 					"StaticLib"
-	else
+	if not _OPTIONS["libSRPLalign-static"] then
 		kind 					"SharedLib"
+	else
+		kind 					"StaticLib"
 	end
 
 	-- -- Dynamic Runtime

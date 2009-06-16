@@ -31,7 +31,7 @@ project "libSRPLscat"
 	}
 
 	-- -- libSRPLavg dll
-	if _OPTIONS["libSRPLscat-static"] then
+	if not _OPTIONS["libSRPLscat-static"] then
 		kind 					"SharedLib"
 	else
 		kind 					"StaticLib"
