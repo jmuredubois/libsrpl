@@ -116,10 +116,89 @@ int CamSRalign::align3plans(double mat[16], double n0[12], double n1[12])
 		  k++;
 	  }
   }
-
   // std::cout << "mat\n" << resEig << std::endl;
+  return res;
+}
 
-  
+//! ALIGN CALL.
+int CamSRalign::alignNplans(double mat[16], int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1)
+{
+  int res = 0;
+  if((np <3) || (plans0 ==NULL) || (plans1==NULL)){ return -1;};
+  Matrix4d B; B.setZero();
+  Vector4d n0, n1;
+  Vector3d N0, N1;
+  Matrix4d Ai;
+  for(int pl = 0; pl < np; pl++)
+  {
+	  n0.setZero(); n1.setZero();
+	  N0.setZero(); N1.setZero();
+	  n0 = Map<Vector4d>((plans0[pl]).n);
+	  n1 = Map<Vector4d>((plans1[pl]).n);
+	  N0 = Map<Vector3d>((plans0[pl]).n);
+	  N1 = Map<Vector3d>((plans1[pl]).n);
+	
+	  Ai.setZero();
+	  Ai = hebAmat(N0,N1);
+
+	  B = B + ( (Ai.transpose())*Ai);
+  }
+  SVD<MatrixXd> svd(B); //!< perform SVD decomposition of A
+  Vector4d S = svd.singularValues();
+  Matrix4d V = svd.matrixV();  // only V matrix is needed
+  Vector4d quat = V.col(3); //!< last column of V (corresponding to smallest S) is singular vector
+ 
+  //http://eigen.tuxfamily.org/dox/classEigen_1_1Quaternion.html#073d5be0431b9af3750e52c92b3fd754
+  // Note the order of the arguments: the real w coefficient first, while internally the coefficients are stored in the following order: [x, y, z, w] 
+  Quaterniond qrot = Quaterniond(quat(3), quat(0), quat(1), quat(2)); //!< construct quaternion from coeffs w, x, y, z
+  Matrix3d mrot = qrot.toRotationMatrix();
+  // std::cout << "mrot" << std::endl << mrot << std::endl;
+
+  // Declare transformation for storage
+  Eigen::Transform3d trf1to0; trf1to0.setIdentity();
+  Matrix4d resEig = trf1to0.matrix();
+
+
+  ///** Total transform : \n
+  // * - translate Pts1 to origin, \n
+  // * - rotate Pts1 to be parallel to Pts0, \n 
+  // * - translate Pts1 to Pts0.
+  // */
+  ////! compute the crossings to find the translations (rotations should be done around origin)
+  //Vector3d xing0 = this->crossing( &n00, &n01, &n02);
+  //Vector3d xing1 = this->crossing( &n10, &n11, &n12);
+  //Vector3d zero3; zero3.setZero();
+  //xing0 =  zero3 - xing0; // xing1 =  zero3 - xing1; // apparently, ist xing0 that must be inverted
+		//											 // I don't understand :'(
+  //Translation3d tran0 = Translation3d(xing0);
+  //Translation3d tran1 = Translation3d(xing1);
+  ////// std::cout << "matId\n" << resEig << std::endl;
+  ////trf1to0.pretranslate(xing1);
+  ////// resEig = trf1to0.matrix(); std::cout << "matTrl1\n" << resEig << std::endl;
+  ////trf1to0.prerotate(qrot);
+  ////// resEig = trf1to0.matrix(); std::cout << "matTrl1Rot\n" << resEig << std::endl;
+  ////trf1to0.pretranslate(xing0);
+  ////// resEig = trf1to0.matrix(); std::cout << "matTrl0\n" << resEig << std::endl;
+
+  // following Hebert recipe for translation
+  Vector3d tHeb; tHeb.setZero();
+	  tHeb = this->tranHebert(np, plans0, plans1);
+  trf1to0.rotate(qrot);
+  trf1to0.pretranslate(tHeb);
+
+
+  resEig = trf1to0.matrix();
+
+  int k=0; // cMatrix col major
+  for(int col = 0; col < 4; col++)
+  {
+	  for(int row = 0; row < 4; row++)
+	  {
+		  mat[k] = resEig(row,col); //
+		  k++;
+	  }
+  }
+  // std::cout << "mat\n" << resEig << std::endl;
   return res;
 }
 
@@ -165,7 +244,7 @@ Vector3d CamSRalign::crossing(Vector4d *n0, Vector4d *n1, Vector4d *n2)
 
 Vector3d CamSRalign::tranHebert(Vector4d *n00, Vector4d *n01, Vector4d *n02,
 		               Vector4d *n10, Vector4d *n11, Vector4d *n12)
-{ // translatino vector according to Hebert recipe
+{ // translation vector according to Hebert recipe
 	Vector3d res; res.setZero();
 	Vector3d D; D.setZero();
 	D(0) = ( n10->w() - n00->w() );
@@ -175,6 +254,42 @@ Vector3d CamSRalign::tranHebert(Vector4d *n00, Vector4d *n01, Vector4d *n02,
 	C.row(0) = n00->start<3>();
 	C.row(1) = n01->start<3>();
 	C.row(2) = n02->start<3>();
+	// DEBUG trick to find transl even if points are in xy plan only
+	Vector3d tr = C.col(2); 
+	if (tr.norm()< 2e-8 )
+	{
+		C(0,2) = 300;
+		C(1,2) = 300;
+		C(2,2) = 300;
+	}
+	// END OF DEBUG trick to find transl even if points are in xy plan only
+	res = (C.transpose() * C ).inverse() * C.transpose() * D;
+	return res;
+}
+
+Vector3d CamSRalign::tranHebert(int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1)
+{ // translation vector according to Hebert recipe
+	Vector3d res; res.setZero();
+	if((np <3) || (plans0 ==NULL) || (plans1==NULL)){ return res;};
+	VectorXd D; D = VectorXd::Zero(np);
+	MatrixXd C; C = MatrixXd::Zero(np,3);
+	for(int pl = 0; pl < np; pl++)
+	{
+	  D(pl) = plans1[pl].n[3] - plans0[pl].n[3];
+	  //C.row(pl) = n0[pl].start<3>();
+	  C.row(pl) = Map<MatrixXd>(plans0[pl].n,1,3);
+	}
+
+	// DEBUG trick to find transl even if points are in xy plan only
+	VectorXd tr = C.col(2); 
+	if (tr.norm()< 2e-6 )
+	{
+		for(int pl = 0; pl < np; pl++)
+		{
+			C(pl,2) = 300;
+		}
+	}
+	// END OF DEBUG trick to find transl even if points are in xy plan only
 	res = (C.transpose() * C ).inverse() * C.transpose() * D;
 	return res;
 }
@@ -201,4 +316,10 @@ SRPLALI_API int PLALI_align3plans(SRPLALI srPLALI, double mat[16], double n0[12]
 {
   if(!srPLALI)return -1;
   return  srPLALI->align3plans( mat, n0, n1);
+}
+
+SRPLALI_API int PLALI_alignNplans(SRPLALI srPLALI, double mat[16], int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1)
+{
+  if(!srPLALI)return -1;
+  return  srPLALI->alignNplans( mat, np, plans0, plans1);
 }
