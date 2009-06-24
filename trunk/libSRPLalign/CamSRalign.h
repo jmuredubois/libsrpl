@@ -15,6 +15,12 @@
 	#define SAFE_FREE(p)       { if(p) { delete (p);     (p)=0; } }
 #endif
 
+#ifndef JMUPLAN3DHEADER
+#define JMUPLAN3DHEADER
+typedef struct plan3D{
+    double n[4]; // for nx, ny, nz and d
+} JMUPLAN3D;
+#endif // 
 
 #include <list>		//for std::list
 #include <vector>	//for std::vector
@@ -42,6 +48,7 @@ public:
 	~CamSRalign();
 	//! coordinate transform  method
 	int align3plans(double mat[16], double n0[12], double n1[12]);
+	int alignNplans(double mat[16], int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1);
 
 private:
 	Matrix4d hebAmat(Vector3d n0, Vector3d n1);
@@ -49,6 +56,7 @@ private:
 	Vector3d crossing(Vector4d *n0, Vector4d *n1, Vector4d *n2);
 	Vector3d tranHebert(Vector4d *n00, Vector4d *n01, Vector4d *n02,
 		               Vector4d *n10, Vector4d *n11, Vector4d *n12);
+	Vector3d tranHebert(int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1);
 	
 #ifdef AVGTIMER
   CPreciseTimer _ctrTimer;	//!< timer for align operation
