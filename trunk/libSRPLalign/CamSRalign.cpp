@@ -9,6 +9,8 @@
 #include "CamSRalign.h" //!< SR avg header file
 #include "libSRPLalign.h" //!< library header file
 
+int factorial (int m) {return (m > 1 ? m * factorial(m - 1) : 1);}
+
 /**
  *SR buffer ransac class constructor \n
  *  \n
@@ -294,6 +296,54 @@ Vector3d CamSRalign::tranHebert(int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1)
 	return res;
 }
 
+//! ALIGN CALL.
+int CamSRalign::align2dNpoints(double mat[16], int npts, double* x0, double* y0, double* x1, double* y1)
+{
+  int res = 0;
+  if((npts <3) ||(x0 ==NULL)||(x1==NULL)||(y0 ==NULL)||(y1==NULL)){ return -1;};
+  if(npts>12) {return -1;};
+  
+  int np= factorial(npts) / ( factorial(2) * factorial((npts-2)) ) ;
+  JMUPLAN3D *plans0, *plans1;
+  plans0 = (JMUPLAN3D*) malloc(np*sizeof(JMUPLAN3D));
+  plans1 = (JMUPLAN3D*) malloc(np*sizeof(JMUPLAN3D));
+  memset(plans0, 0x0, np*sizeof(JMUPLAN3D));
+  memset(plans1, 0x0, np*sizeof(JMUPLAN3D));
+
+  int pl = 0; int pt1=0;
+  Vector2d nVec;
+  for(int pt = 0; pt < npts; pt++)
+  {
+	  pt1 = pt+1;
+	  for(int ptC = pt1; ptC < npts; ptC++)
+	  {
+		  // add normal vector for target list
+		  nVec.setZero();
+		  nVec(0) = -y0[ptC] + y0[pt];
+		  nVec(1) = +x0[ptC] - x0[pt];
+		  nVec.normalize();
+		  plans0[pl].n[0] = nVec(0);
+		  plans0[pl].n[1] = nVec(1);
+		  plans0[pl].n[2] = 0;
+		  plans0[pl].n[3] = (nVec(0)*x0[pt]) + (nVec(1)*y0[pt]); // dist with origin is scalar prod of nVec with one point belonging to line
+
+		  // add normal vector for source lisr
+		  nVec.setZero();
+		  nVec(0) = -y1[ptC] + y1[pt];
+		  nVec(1) = +x1[ptC] - x1[pt];
+		  nVec.normalize();
+		  plans1[pl].n[0] = nVec(0);
+		  plans1[pl].n[1] = nVec(1);
+		  plans1[pl].n[2] = 0;
+		  plans1[pl].n[3] = (nVec(0)*x1[pt]) + (nVec(1)*y1[pt]); // dist with origin is scalar prod of nVec with one point belonging to line
+		  // increment plane list count
+		  pl++;
+	  }
+  }
+  res += alignNplans(mat, np, plans0, plans1);
+  return res;
+}
+
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 /////////////////////// API FUNCTIONS //////////////////////////
@@ -322,4 +372,10 @@ SRPLALI_API int PLALI_alignNplans(SRPLALI srPLALI, double mat[16], int np, JMUPL
 {
   if(!srPLALI)return -1;
   return  srPLALI->alignNplans( mat, np, plans0, plans1);
+}
+
+SRPLALI_API int PLALI_align2dNpoints(SRPLALI srPLALI, double mat[16], int npts, double* x0, double* y0, double* x1, double* y1)
+{
+  if(!srPLALI)return -1;
+  return  srPLALI->align2dNpoints( mat, npts, x0, y0, x1, y1);
 }

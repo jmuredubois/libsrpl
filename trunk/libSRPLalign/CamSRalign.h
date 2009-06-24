@@ -49,6 +49,7 @@ public:
 	//! coordinate transform  method
 	int align3plans(double mat[16], double n0[12], double n1[12]);
 	int alignNplans(double mat[16], int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1);
+	int align2dNpoints(double mat[16], int npts, double* x0, double* y0, double* x1, double* y1);
 
 private:
 	Matrix4d hebAmat(Vector3d n0, Vector3d n1);
