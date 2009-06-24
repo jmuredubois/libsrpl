@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
     /****************************/
 	/* test alignment method based on 2d points  */
 	/****************************/
-	int npts = 3;
+	int npts = 6;//3;
 	double *x0, *y0, *x1, *y1;
 	x0 = (double*) malloc(npts*sizeof(double)); memset(x0, 0x0, npts*sizeof(double));
 	y0 = (double*) malloc(npts*sizeof(double)); memset(y0, 0x0, npts*sizeof(double));
@@ -139,6 +139,12 @@ int main(int argc, char *argv[])
 	x1[0] = 888.37; y1[0] = -79.374;
 	x1[1] = 641.50; y1[1] = -143.07;
 	x1[2] = 557.99; y1[2] = -319.42;
+	x0[3] = 291.60; y0[3] = -741.42;
+	x0[4] = 808.94; y0[4] = -362.81;
+	x0[5] = 127.26; y0[5] = -475.59;
+	x1[3] = 594.20; y1[3] = -456.40;
+	x1[4] = 988.93; y1[4] = -46.257;
+	x1[5] = 529.36; y1[5] = -177.41;
 	PLALI_align2dNpoints(ali, mat, npts, x0, y0, x1, y1);
 	free(x0); free(y0); free(x1); free(y1);
 	// display results
