@@ -278,8 +278,7 @@ Vector3d CamSRalign::tranHebert(int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1)
 	for(int pl = 0; pl < np; pl++)
 	{
 	  D(pl) = plans1[pl].n[3] - plans0[pl].n[3];
-	  //C.row(pl) = n0[pl].start<3>();
-	  C.row(pl) = Map<MatrixXd>(plans0[pl].n,1,3);
+	  C.row(pl) = Map<RowVector3d>(plans0[pl].n);
 	}
 
 	// DEBUG trick to find transl even if points are in xy plan only
