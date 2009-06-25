@@ -50,7 +50,7 @@ public:
 	int SetIterMax(int iterMax);
 	double  GetDistPla(){return _dist2pla;}; //!< threshold for distance to plane in mm
 	double  SetDistPla(double distPla);	
-	double GetProjZRotMat(double mat[9]);//
+	double SetProjZRotMat(RSCPLAN* plan);
 	RSCPLAN GetPlaBest(){return _plaBst;};
 	RSCPLAN GetPlaCurr(){return _plaCur;};
 	RSCPLAN GetBestPla(unsigned int lev);

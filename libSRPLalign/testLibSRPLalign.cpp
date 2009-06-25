@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
 	x1[3] = 594.20; y1[3] = -456.40;
 	x1[4] = 988.93; y1[4] = -46.257;
 	x1[5] = 529.36; y1[5] = -177.41;
-	PLALI_align2dNpoints(ali, mat, npts, x0, y0, x1, y1);
+	PLALI_align2dNpoints(ali, mat, npts, y0, x0, y1, x1);
 	free(x0); free(y0); free(x1); free(y1);
 	// display results
 	printMat4(mat);
