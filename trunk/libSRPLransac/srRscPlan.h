@@ -10,10 +10,11 @@
 #ifndef SRRSCPLANHEADER
 #define SRRSCPLANHEADER
 typedef struct rscPlanVar{
+	double nVec[4];
+	double matZ[16];
+	int iter;
     std::vector<int> inliers;
 	std::vector<int> outliers;
-    double nVec[4];
-	int iter;
 } RSCPLAN;
 #endif // 
 

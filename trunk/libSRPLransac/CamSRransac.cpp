@@ -170,6 +170,7 @@ int CamSRransac::ransac(SRBUF srBuf, unsigned short* z, short* y, short* x, bool
 		  
 	  }*/
   }
+  SetProjZRotMat( &_plaBst);
   _bestPlanes.push_back(_plaBst);
 
   return res;
@@ -273,6 +274,8 @@ int CamSRransac::ResetPlane(RSCPLAN* plan)
 {
 	int res=0;
 	memset( (void*) &(plan->nVec), 0x0, 4*sizeof(double) );
+	memset( (void*) &(plan->matZ), 0x0, 16*sizeof(double) );
+	plan->matZ[0] = 1; plan->matZ[5] = 1; plan->matZ[10] = 1; plan->matZ[15] = 1;
 	plan->inliers.erase(plan->inliers.begin(), plan->inliers.end());
 	plan->outliers.erase(plan->outliers.begin(), plan->outliers.end());
 	plan->iter = -1;
@@ -315,22 +318,29 @@ double CamSRransac::SetDistPla(double distPla)
 }
 
 //! Returns the matrix to rotate best plan axis on Z axis
-double CamSRransac::GetProjZRotMat(double mat[9])
+double CamSRransac::SetProjZRotMat(RSCPLAN *plan)
 {
 	// in ML, see trunk/srMatlab/utils/rotateSRPtsArbitrary.m
 	// http://eigen.tuxfamily.org/dox/classEigen_1_1Quaternion.html#2e6246f7bf5ec16f738889a4f3e9c3b9
 	Eigen::Vector3d nVec3;
-	Eigen::Vector3d nVecZ; nVecZ.setZero(); nVecZ(2) = -1.0;
+	Eigen::Vector3d nVecZ; nVecZ.setZero(); nVecZ(2) = -1.0; //-1 sign for z coordinate so that z increases as we move away from camera
 	for(int k=0; k<3; k++)
 	{
-		  nVec3(k) = _plaBst.nVec[k];
+		  nVec3(k) = plan->nVec[k];
 	}
 	Eigen::Quaterniond qz;
 	qz.setFromTwoVectors(nVec3, nVecZ);
-	Eigen::Matrix3d matE = qz.toRotationMatrix();
-	for(int k=0; k<9; k++)
+	Eigen::Transform3d trfEig; trfEig.setIdentity();
+	trfEig.rotate(qz);
+	Eigen::Matrix4d matEig = trfEig.matrix();
+	int k=0; // cMatrix col major
+	for(int col = 0; col < 4; col++)
 	{
-		mat[k] = matE(k);
+	  for(int row = 0; row < 4; row++)
+	  {
+		  plan->matZ[k] = matEig(row,col); //
+		  k++;
+	  }
 	}
 
 	return 0;
@@ -420,10 +430,10 @@ SRPLRSC_API double PLRSC_SetDistPla(SRPLRSC srPLRSC, double distPla)
   return srPLRSC->SetDistPla(distPla);
 }
 
-SRPLRSC_API double PLRSC_GetProjZRotMat(SRPLRSC srPLRSC, double mat[9])
+SRPLRSC_API double PLRSC_SetProjZRotMat(SRPLRSC srPLRSC, RSCPLAN *plan)
 {
 	if(!srPLRSC)return -1.0;
-	return srPLRSC->GetProjZRotMat(mat);
+	return srPLRSC->SetProjZRotMat(plan);
 }
 
 SRPLRSC_API RSCPLAN PLRSC_GetBestPla(SRPLRSC srPLRSC, unsigned int lev)

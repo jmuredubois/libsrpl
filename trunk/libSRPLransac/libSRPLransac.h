@@ -43,7 +43,7 @@ SRPLRSC_API int PLRSC_GetIterMax(SRPLRSC srPLRSC);
 SRPLRSC_API int PLRSC_SetIterMax(SRPLRSC srPLRSC, int iterMax);
 SRPLRSC_API double PLRSC_GetDistPla(SRPLRSC srPLRSC);
 SRPLRSC_API double PLRSC_SetDistPla(SRPLRSC srPLRSC, double distPla); // distance in mm
-SRPLRSC_API double PLRSC_GetProjZRotMat(SRPLRSC srPLRSC, double mat[9]); // get projection matrix that turns best plane to z normal
+SRPLRSC_API double PLRSC_SetProjZRotMat(SRPLRSC srPLRSC, RSCPLAN *plan); // get projection matrix that turns best plane to z normal
 SRPLRSC_API RSCPLAN PLRSC_GetPlaBest(SRPLRSC srPLRSC);
 SRPLRSC_API RSCPLAN PLRSC_GetPlaCurr(SRPLRSC srPLRSC);
 SRPLRSC_API RSCPLAN PLRSC_GetBestPla(SRPLRSC srPLRSC, unsigned int lev);
