@@ -204,18 +204,19 @@ int CamSRalign::alignNplans(double mat[16], int np, JMUPLAN3D* plans0, JMUPLAN3D
   return res;
 }
 
-Matrix4d CamSRalign::hebAmat(Vector3d n0, Vector3d n1)
+Matrix4d CamSRalign::hebAmat(Vector3d &n0, Vector3d &n1)
 { /*  [ (n0+n1)° (n1-n0) ]
    *  [ (n0-n1)t      0  ]
    */
 	Matrix4d res; res.setZero();
-	res.corner<3,3>(TopLeft)  = heb0mat(n0+n1);
+	Vector3d nSum = n0+n1;
+	res.corner<3,3>(TopLeft)  = heb0mat(nSum);
 	res.corner<3,1>(TopRight) = (n1-n0);
 	res.corner<1,3>(BottomLeft) = (n0.transpose()-n1.transpose()); 
 	return res;
 }
 
-Matrix3d CamSRalign::heb0mat(Vector3d v)
+Matrix3d CamSRalign::heb0mat(Vector3d &v)
 { /*  [   0 +v3 -v2 ]
    *  [ -v3   0 +v1 ]
    *  [ +v2 -v1   0 ]
@@ -341,6 +342,45 @@ int CamSRalign::align2dNpoints(double mat[16], int npts, double* x0, double* y0,
   }
   res += alignNplans(mat, np, plans0, plans1);
   return res;
+}
+Transform3d CamSRalign::GetTrfminZalign(JMUPLAN3D* plan)
+{
+	// see libSRPLransac CamSRransac::SetProjZRotMat
+	// http://eigen.tuxfamily.org/dox/classEigen_1_1Quaternion.html#2e6246f7bf5ec16f738889a4f3e9c3b9
+	Eigen::Vector3d nVec3;
+	Eigen::Vector3d nVecZ; nVecZ.setZero(); nVecZ(2) = -1.0; //-1 sign for z coordinate so that z increases as we move away from camera
+	for(int k=0; k<3; k++)
+	{
+		  nVec3(k) = plan->n[k];
+	}
+	Eigen::Quaterniond qz;
+	qz.setFromTwoVectors(nVec3, nVecZ);
+	Eigen::Transform3d trfEig; trfEig.setIdentity();
+	trfEig.rotate(qz);
+	/*Eigen::Matrix4d matEig = trfEig.matrix();
+	int k=0; // cMatrix col major
+	for(int col = 0; col < 4; col++)
+	{
+	  for(int row = 0; row < 4; row++)
+	  {
+		  plan->matZ[k] = matEig(row,col); //
+		  k++;
+	  }
+	}*/
+
+	return trfEig;
+}
+int CamSRalign::align1plan2dNpoints(double mat[16], JMUPLAN3D* plan0, JMUPLAN3D* plan1, int npts, double* xyz0, double* xyz1)
+{
+	int res=0;
+	Transform3d rotZ0 = GetTrfminZalign(plan0);
+	Transform3d rotZ1 = GetTrfminZalign(plan1);
+	for(int pt = 0; pt < npts; pt++)
+	{
+
+	}
+
+	return res;
 }
 
 ////////////////////////////////////////////////////////////////
