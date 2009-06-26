@@ -29,8 +29,11 @@ CamSRalign::~CamSRalign()
 Vector3d CamSRalign::getRefPoint(JMUPLAN3D* plan)
 {
 	Vector3d res; res.setZero();
-	res = Map<Vector3d>(plan->n);
-	res = res*(plan->n[3]); // re-scale normalized vector
+	//res = Map<Vector3d>(plan->n);
+	//res = res*(plan->n[3]); // re-scale normalized vector
+	res(0) = plan->n[0] * plan->n[3];
+	res(1) = plan->n[1] * plan->n[3];
+	res(2) = plan->n[2] * plan->n[3];
 	return res;
 }
 
@@ -462,11 +465,36 @@ int CamSRalign::align1plan2dNpoints(double mat[16], JMUPLAN3D* plan0, JMUPLAN3D*
 	if((npts <3) ||(xyz0 ==NULL)||(xyz1==NULL)){ return -1;}; //avoid bad params
 	if(npts>12) {return -1;}; // avoid too many points
 
+	std::string fn;
+	std::string comments; comments = "Debugging !!!";
+
+	// get translation matrices
+	Vector3d ref0 = getRefPoint(plan0);
+	Vector3d ref1 = getRefPoint(plan1);
+	Transform3d trl0; trl0.setIdentity(); //trl0.translation() = getRefPoint(plan0);
+	Transform3d trl1; trl1.setIdentity(); //trl1.translation() = -getRefPoint(plan1);
+	Matrix4d tMat0 = trl0.matrix(); tMat0(0,3) =ref0(0); tMat0(1,3) =ref0(1); tMat0(2,3) =ref0(2);
+	Transform3d trl0R; trl0R.setIdentity();
+	Matrix4d tMat0R= trl0R.matrix(); tMat0R(0,3) =-ref0(0); tMat0R(1,3) =-ref0(1); tMat0R(2,3) =-ref0(2);
+	Matrix4d tMat1 = trl1.matrix(); tMat1(0,3) =ref1(0); tMat1(1,3) =ref1(1); tMat1(2,3) =ref1(2);
+	fn = "dbg_tMat0.xml"; WriteCamTrfMat4(fn, tMat0, comments);
+	fn = "dbg_tMat0R.xml"; WriteCamTrfMat4(fn, tMat0R, comments);
+	fn = "dbg_tMat1.xml"; WriteCamTrfMat4(fn, tMat1, comments);
+
 	// Get rotation matrices
 	Transform3d rotZ0 = getTrfminZalign(plan0);
 	Transform3d rotZ1 = getTrfminZalign(plan1);
 	Matrix4d rMatZ0 = rotZ0.matrix();
 	Matrix4d rMatZ1 = rotZ1.matrix();
+	fn = "dbg_rMatTgt.xml"; WriteCamTrfMat4(fn, rMatZ0, comments);
+	fn = "dbg_rMatSrc.xml"; WriteCamTrfMat4(fn, rMatZ1, comments);
+
+	// Get "to origin" matrices
+	Matrix4d toOr0 = tMat0 * rMatZ0;
+	Matrix4d toOr1 = tMat1 * rMatZ1;
+	fn = "dbg_toOr0.xml"; WriteCamTrfMat4(fn, toOr0, comments);
+	fn = "dbg_toOr1.xml"; WriteCamTrfMat4(fn, toOr1, comments);
+
 
 	// Transform xyz coords into Vectors
 	std::vector<Vector4d> pts0 ; std::vector<Vector4d> pts1 ;
@@ -485,7 +513,7 @@ int CamSRalign::align1plan2dNpoints(double mat[16], JMUPLAN3D* plan0, JMUPLAN3D*
 		curPt4.w() = 1.0; // quick trick to set last component of 4vec to a value
 		pts0.push_back(curPt4); // add this point to the list
 		curPtRot4.setZero();
-		curPtRot4 = rMatZ0 * curPt4;
+		curPtRot4 = toOr0 * curPt4;
 		ptsR0.push_back(curPtRot4);
 
 		// NOW, points in the source list
@@ -495,7 +523,7 @@ int CamSRalign::align1plan2dNpoints(double mat[16], JMUPLAN3D* plan0, JMUPLAN3D*
 		curPt4.w() = 1.0; // quick trick to set last component of 4vec to a value
 		pts1.push_back(curPt4); // add this point to the list
 		curPtRot4.setZero();
-		curPtRot4 = rMatZ1 * curPt4;
+		curPtRot4 = toOr1 * curPt4;
 		ptsR1.push_back(curPtRot4);
 	}
 
@@ -539,23 +567,26 @@ int CamSRalign::align1plan2dNpoints(double mat[16], JMUPLAN3D* plan0, JMUPLAN3D*
 		  li++;
 		}
 	}
+
+
 	Transform3d trfXY = alignNplans(np, linesXY0, linesXY1);
 	Matrix4d trfXYmat = trfXY.matrix();
-
-	Transform3d trl0; trl0.translation() = getRefPoint(plan0);
-	Transform3d trl1; trl1.translation() = getRefPoint(plan1);
-	Matrix4d tMat0 = trl0.matrix();
-	Matrix4d tMat1 = trl1.matrix();
+	fn = "dbg_trfXY.xml"; WriteCamTrfMat4(fn, trfXYmat, comments);
 
 	// NOW, final composing of transforms
 	Matrix4d resTrf; resTrf.setIdentity();
-	resTrf = tMat1.inverse() * resTrf;
+	resTrf = tMat1 * resTrf;
+	fn = "dbg_res01.xml"; WriteCamTrfMat4(fn, resTrf, comments);
 	resTrf = rMatZ1 * resTrf; // first rotation -> P1 pts aligned with Z axis;
+	fn = "dbg_res02.xml"; WriteCamTrfMat4(fn, resTrf, comments);
 	//resTrf(2,3) = - plan1->n[3]; // then, translate P1 rsc plane to XY plane
 	resTrf = trfXYmat * resTrf; // rotate in xy plane
+	fn = "dbg_res03.xml"; WriteCamTrfMat4(fn, resTrf, comments);
 	//resTrf(2,3) = resTrf(2,3)+ plan0->n[3]; // translate so that P1 si same dist to origin as P0
-	resTrf = rMatZ0.transpose() * resTrf; // rotate so that RSC plan becomes parallel to plan in P0
-	resTrf = tMat0 * resTrf;
+	resTrf = rMatZ0.inverse() * resTrf; // rotate so that RSC plan becomes parallel to plan in P0
+	fn = "dbg_res04.xml"; WriteCamTrfMat4(fn, resTrf, comments);
+	resTrf = tMat0R * resTrf;
+	fn = "dbg_res05.xml"; WriteCamTrfMat4(fn, resTrf, comments);
 
 
 	int k=0; // cMatrix col major
