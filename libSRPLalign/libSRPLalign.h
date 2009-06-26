@@ -42,7 +42,7 @@ SRPLALI_API int PLALI_Close(SRPLALI srPLALI);
 SRPLALI_API int PLALI_align3plans(SRPLALI srPLALI, double mat[16], double n0[12], double n1[12]);
 SRPLALI_API int PLALI_alignNplans(SRPLALI srPLALI, double mat[16], int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1);
 SRPLALI_API int PLALI_align2dNpoints(SRPLALI srPLALI, double mat[16], int npts, double* x0, double* y0, double* x1, double* y1);
-
+SRPLALI_API int PLALI_align1plan2dNpoints(SRPLALI srPLALI, double mat[16], JMUPLAN3D* plan0, JMUPLAN3D* plan1, int npts, double* xyz0, double* xyz1);
 
 #ifdef __cplusplus
 }
