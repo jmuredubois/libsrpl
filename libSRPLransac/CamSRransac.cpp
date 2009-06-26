@@ -188,7 +188,9 @@ int CamSRransac::RansacIter(SRBUF srBuf, std::vector<int> *outliers, unsigned sh
   int seeds[nSeeds];
   int idx,pix;
   //srand ( this->time_seed() ); // avoid seeding at each iter
-  Eigen::Matrix<double, nSeeds, 4> A;  // trying to solve the overdetermined system   A*x = 0
+  Eigen::MatrixXd A;
+  A = Eigen::MatrixXd::Zero(nSeeds, 4);
+  //Eigen::Matrix<double, nSeeds, 4> A;  // trying to solve the overdetermined system   A*x = 0
   for(int k=0; k<nSeeds; k++)
   {
 	idx = k;// DEBUG DEBUG DEBUG rand() / ( RAND_MAX / num + 1 );
@@ -227,7 +229,7 @@ int CamSRransac::RansacIter(SRBUF srBuf, std::vector<int> *outliers, unsigned sh
   return res;
 }
 //! ONE RANSAC ITERATION.
-int CamSRransac::SetPlaCurNvec(Eigen::MatrixXd A)
+int CamSRransac::SetPlaCurNvec(Eigen::MatrixXd &A)
 {
   int res = 0;
   Eigen::SVD<Eigen::MatrixXd> svd(A); // perform SVD decomposition of A
