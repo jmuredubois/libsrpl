@@ -486,8 +486,28 @@ int CamSRalign::align1plan2dNpoints(double mat[16], JMUPLAN3D* plan0, JMUPLAN3D*
 		  li++;
 		}
 	}
-	res += alignNplans(mat, np, linesXY0, linesXY1);
+	Transform3d trfXY = alignNplans(np, linesXY0, linesXY1);
+	Matrix4d trfXYmat = trfXY.matrix();
 
+	// NOW, final composing of transforms
+	Matrix4d resTrf; resTrf.setIdentity();
+	resTrf = rMatZ1 * resTrf; // first rotation -> P1 pts aligned with Z axis;
+	resTrf(2,3) = - plan1->n[3]; // then, translate P1 rsc plane to XY plane
+	resTrf = trfXYmat * resTrf; // rotate in xy plane
+	resTrf(2,3) = resTrf(2,3)+ plan0->n[3]; // translate so that P1 si same dist to origin as P0
+	resTrf = rMatZ0.inverse() * resTrf; // rotate so that RSC plan becomes parallel to plan in P0
+
+
+	int k=0; // cMatrix col major
+	for(int col = 0; col < 4; col++)
+	{
+	  for(int row = 0; row < 4; row++)
+	  {
+		  mat[k] = resTrf(row,col); //
+		  k++;
+	  }
+	}
+  // std::cout << "mat\n" << resTrf << std::endl;
 	return res;
 }
 
@@ -525,4 +545,10 @@ SRPLALI_API int PLALI_align2dNpoints(SRPLALI srPLALI, double mat[16], int npts, 
 {
   if(!srPLALI)return -1;
   return  srPLALI->align2dNpoints( mat, npts, x0, y0, x1, y1);
+}
+
+SRPLALI_API int PLALI_align1plan2dNpoints(SRPLALI srPLALI, double mat[16], JMUPLAN3D* plan0, JMUPLAN3D* plan1, int npts, double* xyz0, double* xyz1)
+{
+  if(!srPLALI)return -1;
+  return  srPLALI->align1plan2dNpoints( mat, plan0, plan1, npts, xyz0, xyz1);
 }
