@@ -26,6 +26,58 @@ CamSRalign::~CamSRalign()
 {
 }
 
+Vector3d CamSRalign::getRefPoint(JMUPLAN3D* plan)
+{
+	Vector3d res; res.setZero();
+	res = Map<Vector3d>(plan->n);
+	res = res*(plan->n[3]); // re-scale normalized vector
+	return res;
+}
+
+int CamSRalign::WriteCamTrfMat4(std::string fn, Matrix4d &mat4, std::string comments)
+{
+	int res = 0;
+
+	try
+	{
+		// http://www.grinninglizard.com/tinyxmldocs/tutorial0.html
+		ticpp::Document doc( fn );
+		ticpp::Declaration decl("1.0","utf-8","");
+		doc.InsertEndChild( decl );
+		ticpp::Comment comment( comments );
+		doc.InsertEndChild(comment);
+		ticpp::Element root("TrfMat");
+		char rowStr[64]; char attrStr[64]; char valStr[64];
+		for(int row = 0; row <4; row++)
+		{
+			sprintf(rowStr, "Row%i", row);
+			ticpp::Element pRow(rowStr);
+			for(int col = 0; col <4 ; col++)
+			{
+				sprintf(attrStr, "val%i", col);
+				sprintf(valStr, "%+0.6f", mat4(row, col));
+				pRow.SetAttribute(attrStr, valStr);
+			}
+			root.InsertEndChild( pRow );
+		}
+		doc.InsertEndChild( root );
+		doc.SaveFile();
+
+	}
+	catch( ticpp::Exception& ex )
+	{
+		std::cout << ex.what();
+		return -1;
+	}
+	catch(...)
+	{
+		//camTranMat->Identity(); // if a problem occured, set TrfMat to Identity
+		return -1;
+	}
+	
+	return res;
+}
+
 
 //! ALIGN CALL.
 int CamSRalign::align3plans(double mat[16], double n0[12], double n1[12])
@@ -213,7 +265,8 @@ Transform3d CamSRalign::alignNplans(int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1
   Vector3d tHeb; tHeb.setZero();
 	  tHeb = this->tranHebert(np, plans0, plans1);
   trf1to0.rotate(qrot);
-  trf1to0.pretranslate(tHeb);
+  //trf1to0.pretranslate(tHeb);// DEBUGGING alignment errors on SR3 data
+  trf1to0.translate(tHeb);
   resEig = trf1to0.matrix();
 
   return trf1to0;
@@ -375,7 +428,7 @@ int CamSRalign::align2dNpoints(double mat[16], int npts, double* x0, double* y0,
   res += alignNplans(mat, np, plans0, plans1);
   return res;
 }
-Transform3d CamSRalign::GetTrfminZalign(JMUPLAN3D* plan)
+Transform3d CamSRalign::getTrfminZalign(JMUPLAN3D* plan)
 {
 	// see libSRPLransac CamSRransac::SetProjZRotMat
 	// http://eigen.tuxfamily.org/dox/classEigen_1_1Quaternion.html#2e6246f7bf5ec16f738889a4f3e9c3b9
@@ -410,8 +463,8 @@ int CamSRalign::align1plan2dNpoints(double mat[16], JMUPLAN3D* plan0, JMUPLAN3D*
 	if(npts>12) {return -1;}; // avoid too many points
 
 	// Get rotation matrices
-	Transform3d rotZ0 = GetTrfminZalign(plan0);
-	Transform3d rotZ1 = GetTrfminZalign(plan1);
+	Transform3d rotZ0 = getTrfminZalign(plan0);
+	Transform3d rotZ1 = getTrfminZalign(plan1);
 	Matrix4d rMatZ0 = rotZ0.matrix();
 	Matrix4d rMatZ1 = rotZ1.matrix();
 
@@ -489,13 +542,20 @@ int CamSRalign::align1plan2dNpoints(double mat[16], JMUPLAN3D* plan0, JMUPLAN3D*
 	Transform3d trfXY = alignNplans(np, linesXY0, linesXY1);
 	Matrix4d trfXYmat = trfXY.matrix();
 
+	Transform3d trl0; trl0.translation() = getRefPoint(plan0);
+	Transform3d trl1; trl1.translation() = getRefPoint(plan1);
+	Matrix4d tMat0 = trl0.matrix();
+	Matrix4d tMat1 = trl1.matrix();
+
 	// NOW, final composing of transforms
 	Matrix4d resTrf; resTrf.setIdentity();
+	resTrf = tMat1.inverse() * resTrf;
 	resTrf = rMatZ1 * resTrf; // first rotation -> P1 pts aligned with Z axis;
-	resTrf(2,3) = - plan1->n[3]; // then, translate P1 rsc plane to XY plane
+	//resTrf(2,3) = - plan1->n[3]; // then, translate P1 rsc plane to XY plane
 	resTrf = trfXYmat * resTrf; // rotate in xy plane
-	resTrf(2,3) = resTrf(2,3)+ plan0->n[3]; // translate so that P1 si same dist to origin as P0
-	resTrf = rMatZ0.inverse() * resTrf; // rotate so that RSC plan becomes parallel to plan in P0
+	//resTrf(2,3) = resTrf(2,3)+ plan0->n[3]; // translate so that P1 si same dist to origin as P0
+	resTrf = rMatZ0.transpose() * resTrf; // rotate so that RSC plan becomes parallel to plan in P0
+	resTrf = tMat0 * resTrf;
 
 
 	int k=0; // cMatrix col major
