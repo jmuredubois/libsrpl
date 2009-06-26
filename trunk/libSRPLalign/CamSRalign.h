@@ -28,11 +28,15 @@ typedef struct plan3D{
 #include <Eigen/Geometry>	 // for geometry transf (quaternions, etc)
 #include <Eigen/StdVector> // Eigen needs special care with STL containers : 
                            // http://eigen.tuxfamily.org/dox/StlContainers.html
+#include <string>
 #include <list>		//for std::list
 #include <vector>	//for std::vector
 #include <math.h>
 #include <ctime>	// for time
 #include <complex> // for ANSI C99 complex numbers; WATCH OUT, this seems to be C++'s  complex<T>
+
+#define TIXML_USE_TICPP
+#include "ticpp.h" //Open source XML parser
 
 using namespace Eigen;
 // look at http://eigen.tuxfamily.org/dox/TutorialCore.html
@@ -54,6 +58,7 @@ public:
 	int alignNplans(double mat[16], int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1);
 	int align2dNpoints(double mat[16], int npts, double* x0, double* y0, double* x1, double* y1);
 	int align1plan2dNpoints(double mat[16], JMUPLAN3D* plan0, JMUPLAN3D* plan1, int npts, double* xyz0, double* xyz1);
+	int WriteCamTrfMat4(std::string fn, Matrix4d &mat4, std::string comments);
 
 private:
 	Matrix4d hebAmat(Vector3d &n0, Vector3d &n1);
@@ -63,8 +68,9 @@ private:
 		               Vector4d *n10, Vector4d *n11, Vector4d *n12);
 	Vector3d tranHebert(int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1);
 	Vector2d tranHebXY(int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1);
-	Transform3d GetTrfminZalign(JMUPLAN3D* plan);
+	Transform3d getTrfminZalign(JMUPLAN3D* plan);
 	Transform3d alignNplans(int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1);
+	Vector3d getRefPoint(JMUPLAN3D* plan);
 	
 #ifdef AVGTIMER
   CPreciseTimer _ctrTimer;	//!< timer for align operation
