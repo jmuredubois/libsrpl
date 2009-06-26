@@ -126,7 +126,36 @@ int CamSRalign::align3plans(double mat[16], double n0[12], double n1[12])
 int CamSRalign::alignNplans(double mat[16], int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1)
 {
   int res = 0;
-  if((np <3) || (plans0 ==NULL) || (plans1==NULL)){ return -1;};
+  
+  // Declare transformation for storage
+  Eigen::Transform3d trf1to0; trf1to0.setIdentity();
+  Matrix4d resEig = trf1to0.matrix();
+
+  /****************************************/
+  /* CALL WORKER FUNCTION *****************/
+  trf1to0 = alignNplans(np, plans0, plans1);
+  /****************************************/
+  resEig = trf1to0.matrix();
+
+  int k=0; // cMatrix col major
+  for(int col = 0; col < 4; col++)
+  {
+	  for(int row = 0; row < 4; row++)
+	  {
+		  mat[k] = resEig(row,col); //
+		  k++;
+	  }
+  }
+  // std::cout << "mat\n" << resEig << std::endl;
+  return res;
+}
+
+//! ALIGN CALL.
+Transform3d CamSRalign::alignNplans(int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1)
+{
+  // Declare transformation for storage
+  Transform3d trf1to0; trf1to0.setIdentity();
+  if((np <3) || (plans0 ==NULL) || (plans1==NULL)){ return trf1to0;};
   Matrix4d B; B.setZero();
   Vector4d n0, n1;
   Vector3d N0, N1;
@@ -156,10 +185,8 @@ int CamSRalign::alignNplans(double mat[16], int np, JMUPLAN3D* plans0, JMUPLAN3D
   Matrix3d mrot = qrot.toRotationMatrix();
   // std::cout << "mrot" << std::endl << mrot << std::endl;
 
-  // Declare transformation for storage
-  Eigen::Transform3d trf1to0; trf1to0.setIdentity();
+  // Declare matrix transformation for storage
   Matrix4d resEig = trf1to0.matrix();
-
 
   ///** Total transform : \n
   // * - translate Pts1 to origin, \n
@@ -187,21 +214,9 @@ int CamSRalign::alignNplans(double mat[16], int np, JMUPLAN3D* plans0, JMUPLAN3D
 	  tHeb = this->tranHebert(np, plans0, plans1);
   trf1to0.rotate(qrot);
   trf1to0.pretranslate(tHeb);
-
-
   resEig = trf1to0.matrix();
 
-  int k=0; // cMatrix col major
-  for(int col = 0; col < 4; col++)
-  {
-	  for(int row = 0; row < 4; row++)
-	  {
-		  mat[k] = resEig(row,col); //
-		  k++;
-	  }
-  }
-  // std::cout << "mat\n" << resEig << std::endl;
-  return res;
+  return trf1to0;
 }
 
 Matrix4d CamSRalign::hebAmat(Vector3d &n0, Vector3d &n1)
@@ -286,11 +301,28 @@ Vector3d CamSRalign::tranHebert(int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1)
 	VectorXd tr = C.col(2); 
 	if (tr.norm()< 2e-6 )
 	{
-		for(int pl = 0; pl < np; pl++)
-		{
-			C(pl,2) = 300;
-		}
+		Vector2d tHeb2D; tHeb2D.setZero();
+		tHeb2D = this->tranHebXY(np, plans0, plans1);
+		res.start<2>() = tHeb2D;
+		res.z()=0.0;
+		return res;
 	}
+	// END OF DEBUG trick to find transl even if points are in xy plan only
+	res = (C.transpose() * C ).inverse() * C.transpose() * D;
+	return res;
+}
+Vector2d CamSRalign::tranHebXY(int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1)
+{ // translation vector according to Hebert recipe
+	Vector2d res; res.setZero();
+	if((np <2) || (plans0 ==NULL) || (plans1==NULL)){ return res;};
+	VectorXd D; D = VectorXd::Zero(np);
+	MatrixXd C; C = MatrixXd::Zero(np,2);
+	for(int pl = 0; pl < np; pl++)
+	{
+	  D(pl) = plans1[pl].n[3] - plans0[pl].n[3];
+	  C.row(pl) = Map<RowVector2d>(plans0[pl].n);
+	}
+
 	// END OF DEBUG trick to find transl even if points are in xy plan only
 	res = (C.transpose() * C ).inverse() * C.transpose() * D;
 	return res;
@@ -373,12 +405,88 @@ Transform3d CamSRalign::GetTrfminZalign(JMUPLAN3D* plan)
 int CamSRalign::align1plan2dNpoints(double mat[16], JMUPLAN3D* plan0, JMUPLAN3D* plan1, int npts, double* xyz0, double* xyz1)
 {
 	int res=0;
+	if((plan0 ==NULL)||(plan1==NULL)){ return -1;}; //avoid bad params
+	if((npts <3) ||(xyz0 ==NULL)||(xyz1==NULL)){ return -1;}; //avoid bad params
+	if(npts>12) {return -1;}; // avoid too many points
+
+	// Get rotation matrices
 	Transform3d rotZ0 = GetTrfminZalign(plan0);
 	Transform3d rotZ1 = GetTrfminZalign(plan1);
+	Matrix4d rMatZ0 = rotZ0.matrix();
+	Matrix4d rMatZ1 = rotZ1.matrix();
+
+	// Transform xyz coords into Vectors
+	std::vector<Vector4d> pts0 ; std::vector<Vector4d> pts1 ;
+	std::vector<Vector4d> ptsR0; std::vector<Vector4d> ptsR1;
+	pts0.clear() ; pts1.clear();
+	ptsR0.clear(); ptsR1.clear();
+	Vector4d curPt4, curPtRot4; Vector3d curPt3;
+
+	// store all pts in Eigen vectors, and rotate them according to input plans
+	for(int pt = 0; pt < npts; pt++)
+	{   // FIRST, points in the target list
+		curPt4.setZero(); curPt3.setZero();
+		curPt3 = Map<Vector3d>(&(xyz0[pt*3]));
+		curPt4.start<3>()  = curPt3;
+		//curPt4.end<1>() = 1.0; // causes C2679 error, no conv. operator found -> probably my 1.0 should be encapsulated in Eigen matrix somehow
+		curPt4.w() = 1.0; // quick trick to set last component of 4vec to a value
+		pts0.push_back(curPt4); // add this point to the list
+		curPtRot4.setZero();
+		curPtRot4 = rMatZ0 * curPt4;
+		ptsR0.push_back(curPtRot4);
+
+		// NOW, points in the source list
+		curPt4.setZero(); curPt3.setZero();
+		curPt3 = Map<Vector3d>(&(xyz1[pt*3]));
+		curPt4.start<3>()  = curPt3;
+		curPt4.w() = 1.0; // quick trick to set last component of 4vec to a value
+		pts1.push_back(curPt4); // add this point to the list
+		curPtRot4.setZero();
+		curPtRot4 = rMatZ1 * curPt4;
+		ptsR1.push_back(curPtRot4);
+	}
+
+	//NOW, transform POINT PAIRS (inside each set) into 2D lines
+	int np= factorial(npts) / ( factorial(2) * factorial((npts-2)) ) ;
+	JMUPLAN3D *linesXY0, *linesXY1;
+	linesXY0 = (JMUPLAN3D*) malloc(np*sizeof(JMUPLAN3D));
+	linesXY1 = (JMUPLAN3D*) malloc(np*sizeof(JMUPLAN3D));
+	memset(linesXY0, 0x0, np*sizeof(JMUPLAN3D));
+	memset(linesXY1, 0x0, np*sizeof(JMUPLAN3D));
+
+	int li = 0; int pt1=0;
+	Vector2d nVec;
 	for(int pt = 0; pt < npts; pt++)
 	{
+	  pt1 = pt+1;
+		for(int ptC = pt1; ptC < npts; ptC++)
+		{
+		  // add normal vector for target list
+		  nVec.setZero();
+		  /*nVec(0) = -y0[ptC] + y0[pt];
+		  nVec(1) = +x0[ptC] - x0[pt];*/
+		  nVec(0) = - ptsR0[ptC].y() + ptsR0[pt].y();
+		  nVec(1) = + ptsR0[ptC].x() - ptsR0[pt].x();
+		  nVec.normalize();
+		  linesXY0[li].n[0] = nVec(0);
+		  linesXY0[li].n[1] = nVec(1);
+		  linesXY0[li].n[2] = 0;
+		  linesXY0[li].n[3] = (nVec(0)*ptsR0[pt].x()) + (nVec(1)*ptsR0[pt].y()); // dist with origin is scalar prod of nVec with one point belonging to line
 
+		  // add normal vector for source lisr
+		  nVec.setZero();
+		  nVec(0) = - ptsR1[ptC].y() + ptsR1[pt].y();
+		  nVec(1) = + ptsR1[ptC].x() - ptsR1[pt].x();
+		  nVec.normalize();
+		  linesXY1[li].n[0] = nVec(0);
+		  linesXY1[li].n[1] = nVec(1);
+		  linesXY1[li].n[2] = 0;
+		  linesXY1[li].n[3] = (nVec(0)*ptsR1[pt].x()) + (nVec(1)*ptsR1[pt].y()); // dist with origin is scalar prod of nVec with one point belonging to line
+		  // increment plane list count
+		  li++;
+		}
 	}
+	res += alignNplans(mat, np, linesXY0, linesXY1);
 
 	return res;
 }

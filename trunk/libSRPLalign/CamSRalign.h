@@ -62,7 +62,9 @@ private:
 	Vector3d tranHebert(Vector4d *n00, Vector4d *n01, Vector4d *n02,
 		               Vector4d *n10, Vector4d *n11, Vector4d *n12);
 	Vector3d tranHebert(int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1);
+	Vector2d tranHebXY(int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1);
 	Transform3d GetTrfminZalign(JMUPLAN3D* plan);
+	Transform3d alignNplans(int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1);
 	
 #ifdef AVGTIMER
   CPreciseTimer _ctrTimer;	//!< timer for align operation
