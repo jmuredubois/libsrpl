@@ -31,9 +31,18 @@ Vector3d CamSRalign::getRefPoint(JMUPLAN3D* plan)
 	Vector3d res; res.setZero();
 	//res = Map<Vector3d>(plan->n);
 	//res = res*(plan->n[3]); // re-scale normalized vector
-	res(0) = plan->n[0] * plan->n[3];
-	res(1) = plan->n[1] * plan->n[3];
-	res(2) = plan->n[2] * plan->n[3];
+	if(plan->n[2] > 0)
+	{
+		res(0) = plan->n[0] * plan->n[3] ;
+		res(1) = plan->n[1] * plan->n[3] ;
+		res(2) = plan->n[2] * plan->n[3] ;
+	}
+	else
+	{
+		res(0) = plan->n[0] * plan->n[3] * (-1.0) ;
+		res(1) = plan->n[1] * plan->n[3] * (-1.0) ;
+		res(2) = plan->n[2] * plan->n[3] * (-1.0) ;
+	}
 	return res;
 }
 
@@ -268,8 +277,8 @@ Transform3d CamSRalign::alignNplans(int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1
   Vector3d tHeb; tHeb.setZero();
 	  tHeb = this->tranHebert(np, plans0, plans1);
   trf1to0.rotate(qrot);
-  //trf1to0.pretranslate(tHeb);// DEBUGGING alignment errors on SR3 data
-  trf1to0.translate(tHeb);
+  trf1to0.pretranslate(tHeb);// DEBUGGING alignment errors on SR3 data
+  //trf1to0.translate(tHeb);
   resEig = trf1to0.matrix();
 
   return trf1to0;
@@ -359,7 +368,7 @@ Vector3d CamSRalign::tranHebert(int np, JMUPLAN3D* plans0, JMUPLAN3D* plans1)
 	{
 		Vector2d tHeb2D; tHeb2D.setZero();
 		tHeb2D = this->tranHebXY(np, plans0, plans1);
-		res.start<2>() = tHeb2D;
+		res.start<2>() = -tHeb2D; // DEBUG DEBUG DEBUG  to solve align problem in wxSRparlab
 		res.z()=0.0;
 		return res;
 	}
@@ -471,12 +480,15 @@ int CamSRalign::align1plan2dNpoints(double mat[16], JMUPLAN3D* plan0, JMUPLAN3D*
 	// get translation matrices
 	Vector3d ref0 = getRefPoint(plan0);
 	Vector3d ref1 = getRefPoint(plan1);
-	Transform3d trl0; trl0.setIdentity(); //trl0.translation() = getRefPoint(plan0);
-	Transform3d trl1; trl1.setIdentity(); //trl1.translation() = -getRefPoint(plan1);
-	Matrix4d tMat0 = trl0.matrix(); tMat0(0,3) =ref0(0); tMat0(1,3) =ref0(1); tMat0(2,3) =ref0(2);
-	Transform3d trl0R; trl0R.setIdentity();
-	Matrix4d tMat0R= trl0R.matrix(); tMat0R(0,3) =-ref0(0); tMat0R(1,3) =-ref0(1); tMat0R(2,3) =-ref0(2);
-	Matrix4d tMat1 = trl1.matrix(); tMat1(0,3) =ref1(0); tMat1(1,3) =ref1(1); tMat1(2,3) =ref1(2);
+	Transform3d trl0;  Matrix4d tMat0 = trl0.matrix() ; tMat0.setIdentity(); 
+	Transform3d trl1;  Matrix4d tMat1 = trl1.matrix() ; tMat1.setIdentity(); 
+	Transform3d trl0R; Matrix4d tMat0R= trl0R.matrix(); tMat0R.setIdentity(); 
+	/*trl0R.translation(ref0); 
+	trl0.translation(-ref0);
+	trl1.translation(-ref1);*/
+	 tMat0(0,3) =-ref0(0);  tMat0(1,3) =-ref0(1);  tMat0(2,3) =-ref0(2);
+	tMat0R(0,3) =+ref0(0); tMat0R(1,3) =+ref0(1); tMat0R(2,3) =+ref0(2);
+	 tMat1(0,3) =-ref1(0);  tMat1(1,3) =-ref1(1);  tMat1(2,3) =-ref1(2);
 	fn = "dbg_tMat0.xml"; WriteCamTrfMat4(fn, tMat0, comments);
 	fn = "dbg_tMat0R.xml"; WriteCamTrfMat4(fn, tMat0R, comments);
 	fn = "dbg_tMat1.xml"; WriteCamTrfMat4(fn, tMat1, comments);
@@ -490,8 +502,8 @@ int CamSRalign::align1plan2dNpoints(double mat[16], JMUPLAN3D* plan0, JMUPLAN3D*
 	fn = "dbg_rMatSrc.xml"; WriteCamTrfMat4(fn, rMatZ1, comments);
 
 	// Get "to origin" matrices
-	Matrix4d toOr0 = tMat0 * rMatZ0;
-	Matrix4d toOr1 = tMat1 * rMatZ1;
+	Matrix4d toOr0 = rMatZ0 * tMat0;
+	Matrix4d toOr1 = rMatZ1 * tMat1;
 	fn = "dbg_toOr0.xml"; WriteCamTrfMat4(fn, toOr0, comments);
 	fn = "dbg_toOr1.xml"; WriteCamTrfMat4(fn, toOr1, comments);
 
