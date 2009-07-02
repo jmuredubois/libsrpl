@@ -118,6 +118,8 @@ int CamSRsegm::LoadSegmSettings(const char* fn)
 			pThd->GetValue(&type);
 			if( strcmp(type, "kStd") ==0)
 			  {_segParaList.push_back(SrSegm(SrSegm::ST_KSTD, thresh, valChar));}
+			else if( strcmp(type, "ampStd") ==0)
+			  {_segParaList.push_back(SrSegm(SrSegm::ST_AMPSTD, thresh, valChar));}
 			else if( strcmp(type, "iDiff") ==0)
 			  {_segParaList.push_back(SrSegm(SrSegm::ST_IDIFF, thresh, valChar));}
 			else if( strcmp(type, "surfCam") ==0)
@@ -201,6 +203,21 @@ int CamSRsegm::Segment(SRBUF srBuf, NANBUF nanBuf, SRBUF srBG, NANBUF nanBG, SRV
         }
         break;							// break to the next segmentation setting
       }
+	  case SrSegm::ST_AMPSTD:		// segmentation based on ratio of difference to std
+      {
+        float val=(float)(thd._thresh);	// read threshold value as float
+		double* bgVarDamp = srVar.amp;
+        for(int i=0;i<num;i++)				// for each pixel
+        {
+		  if(imgNaN[i] || imgNaNbg[i])   continue;	// do not process NIL pixels
+          if(segmBayB[i]) continue;	// do not reprocess already segmented pixels
+		  if(bgVarDamp[i]<=0.0) continue; // do not segment pixels with 0 variance.
+		  kFloat =  sqrt( (( (double)ampSR[i] - (double)ampBG[i]) * ( (double)ampSR[i] - (double)ampBG[i]) ) / (bgVarDamp[i]) );
+          if(kFloat>val)					// when value is above threshold
+            segmBayB[i]=thd._val;		// assign appropriate value to segmented pixel
+        }
+        break;							// break to the next segmentation setting
+      }
 	  case SrSegm::ST_ZCAM:		// zCam segmentation
       {
         break;							// break to the next segmentation setting
@@ -221,6 +238,10 @@ int CamSRsegm::Segment(SRBUF srBuf, NANBUF nanBuf, SRBUF srBG, NANBUF nanBG, SRV
       {
 		break;							// break to the next segmentation setting
       }
+	  default:
+	  {
+		  break;
+	  }
 	}
   }
 // END OF BAYESIAN ONLY SEGMENTATION
@@ -422,6 +443,10 @@ int CamSRsegm::SegmentXYZ(SRBUF srBuf, NANBUF nanBuf, SRBUF srBG, NANBUF nanBG, 
         }*/
         break;							// break to the next segmentation setting
       }
+	  default:
+	  {
+		  break;
+	  }
     }
   }
 //END OF MISC SEGMENTATION
