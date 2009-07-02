@@ -28,7 +28,7 @@
 class SrSegm
 {
 public:
-  enum Type{ST_KSTD, ST_ZCAM, ST_ZDIFF, ST_IDIFF, ST_SURFCAM, ST_SURFDIFF}; //!< enum for type of kernel
+  enum Type{ST_KSTD, ST_AMPSTD, ST_ZCAM, ST_ZDIFF, ST_IDIFF, ST_SURFCAM, ST_SURFDIFF}; //!< enum for type of kernel
   SrSegm();	//!< constructor
   SrSegm(Type type, float thresh, unsigned char val):
 						_type(type),
