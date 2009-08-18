@@ -43,6 +43,8 @@ project "libSRPLalign"
 	end
 	
 	includedirs					{string.format('%s',os.getenv("JMU_EIGEN"))}-- package includes for EIGEN
+	includedirs				{string.format('%s',os.getenv("JMU_TICPP"))} --TICPP includes
+	libdirs					{string.format('%s%s',os.getenv("JMU_TICPP"), "/lib")} -- TICPP libs
 
 -- CONFIGURATIONS -------------------------------------------------------------
 --
@@ -73,6 +75,7 @@ project "libSRPLalign"
 		objdir					(string.format('%s%s',os.getenv("JMU_BUILDS"), "/Release/obj"))
 		implibdir				(string.format('%s%s',os.getenv("JMU_BUILDS"), "/Release/lib")) 
 		defines					{ "NDEBUG" }
+		links					{ "ticpp" }	-- link TICPP
 		flags					{ "OptimizeSpeed" }
 	configuration "Debug"
 		targetname 				( outName.."d" )
@@ -80,6 +83,7 @@ project "libSRPLalign"
 		objdir					(string.format('%s%s',os.getenv("JMU_BUILDS"), "/Debug/obj"))
 		implibdir				(string.format('%s%s',os.getenv("JMU_BUILDS"), "/Debug/lib"))
 		defines					{ "DEBUG", "_DEBUG" }
+		links					{ "ticppd" }	-- link TICPP
 		flags					{ "Symbols" }
 
 	-- -- Operating Systems specific
