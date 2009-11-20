@@ -27,7 +27,7 @@ project "testLibSRPLalign"
 	-- -- Package options
 
 	-- -- Dynamic Runtime
-	if not _OPTIONS["dynamic-runtime"] then
+	if _OPTIONS["dynamic-runtime"] then
 		flags					{ "StaticRuntime" }
 	end
 	
